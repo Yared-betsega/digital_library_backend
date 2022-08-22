@@ -17,8 +17,22 @@ const authRouter = express.Router()
 authRouter.post('/signup-with-email', signUpWithEmail, respond)
 authRouter.post('/verify', verifyEmail, respond)
 authRouter.post('/resendCode', resendCode, respond)
-authRouter.post('/signin-with-email', signinWithEmail, respond)
-authRouter.post('/signin-with-phone', signinWithPhone, respond)
+authRouter.post(
+  '/login',
+  (req, res, next) => {
+    if (!req.body.email && !req.body.phoneNumber) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: 'phone or email are required'
+      })
+    }
+    return next()
+  },
+  signinWithEmail,
+  signinWithPhone,
+  respond
+)
+// authRouter.post('/signin-with-phone', signinWithPhone, as,respond)
 authRouter.post('/signup-with-phone', signUpWithPhone, respond)
 authRouter.post(
   '/continue-with-google',

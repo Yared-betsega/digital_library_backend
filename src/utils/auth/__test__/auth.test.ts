@@ -29,7 +29,7 @@ describe('signin with email', () => {
       isVerified: true
     })
 
-    const res = await request(app).post('/api/v1/auth/signin-with-email').send({
+    const res = await request(app).post('/api/v1/auth/login').send({
       email: 'fitsumabyu@gmail.com',
       password: password
     })
@@ -48,12 +48,10 @@ describe('signin with email', () => {
         isVerified: true
       })
 
-      const res = await request(app)
-        .post('/api/v1/auth/signin-with-email')
-        .send({
-          email: 'fitsumayu@gmail.com',
-          password: password
-        })
+      const res = await request(app).post('/api/v1/auth/login').send({
+        email: 'fitsumayu@gmail.com',
+        password: password
+      })
       expect(res.status).toBe(401)
     })
     it('should send back a 401 status if provided with an invalid password', async () => {
@@ -67,12 +65,10 @@ describe('signin with email', () => {
         isVerified: true
       })
 
-      const res = await request(app)
-        .post('/api/v1/auth/signin-with-email')
-        .send({
-          email: 'fitsumabyu@gmail.com',
-          password: 'invalidPassword'
-        })
+      const res = await request(app).post('/api/v1/auth/login').send({
+        email: 'fitsumabyu@gmail.com',
+        password: 'invalidPassword'
+      })
       expect(res.status).toBe(401)
     })
     it('should send back a 401 status if user if not verified', async () => {
@@ -86,12 +82,10 @@ describe('signin with email', () => {
         isVerified: false
       })
 
-      const res = await request(app)
-        .post('/api/v1/auth/signin-with-email')
-        .send({
-          email: 'fitsumabyu@gmail.com',
-          password: password
-        })
+      const res = await request(app).post('/api/v1/auth/login').send({
+        email: 'fitsumabyu@gmail.com',
+        password: password
+      })
       expect(res.status).toBe(401)
     })
   })

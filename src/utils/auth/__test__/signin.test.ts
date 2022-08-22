@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import { User } from '../../../resources/user/user.model'
 import { app } from '../../../server'
 import { setUp, dropDatabase, dropCollections } from '../../../utils/db/connect'
-
+jest.setTimeout(100000)
 describe('Siginin Test', () => {
   beforeAll(async () => {
     await setUp()
@@ -36,7 +36,7 @@ describe('Siginin Test', () => {
       password: 'this is a password'
     }
     const { body, status } = await request(app)
-      .post('/api/v1/auth/signin-with-phone')
+      .post('/api/v1/auth/login')
       .send(payload)
     expect(status).toBe(200)
   })
@@ -57,7 +57,7 @@ describe('Siginin Test', () => {
       password: 'this is a password'
     }
     const { body, status } = await request(app)
-      .post('/api/v1/auth/signin-with-phone')
+      .post('/api/v1/auth/login')
       .send(payload)
     expect(status).toBe(401)
   })
@@ -78,7 +78,7 @@ describe('Siginin Test', () => {
       password: 'this is an invalid password'
     }
     const { body, status } = await request(app)
-      .post('/api/v1/auth/signin-with-phone')
+      .post('/api/v1/auth/login')
       .send(payload)
     expect(status).toBe(401)
   })
@@ -99,7 +99,7 @@ describe('Siginin Test', () => {
       password: 'this is a password'
     }
     const { body, status } = await request(app)
-      .post('/api/v1/auth/signin-with-phone')
+      .post('/api/v1/auth/login')
       .send(payload)
     expect(status).toBe(401)
   })

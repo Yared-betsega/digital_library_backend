@@ -11,6 +11,9 @@ export const signinWithEmail = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (!req.body.email) {
+    return next()
+  }
   try {
     const user = await User.findOne({
       email: req.body.email
@@ -63,6 +66,9 @@ export const signinWithPhone = async function (
   res: Response,
   next: NextFunction
 ) {
+  if (req.body.email || !req.body.phoneNumber) {
+    return next()
+  }
   const { phoneNumber, password } = req.body
   const user = await User.findOne({ phoneNumber: phoneNumber })
   if (!user) {
