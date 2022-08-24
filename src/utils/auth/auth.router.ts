@@ -4,14 +4,14 @@ import { signinWithEmail } from './signin'
 import { signinWithPhone } from './signin'
 import { verifyGoogle } from '../../middlewares/continueWithGoogle'
 import { continueWithGoogle } from './continue-with-google'
-import { forgotPassword } from './forgotPassword'
-import { resetPassword } from './resetPassword'
+import { forgotPassword, forgotPasswordWithPhone } from './forgotPassword'
+import { resetPassword, resetPasswordWithPhone } from './resetPassword'
 import { respond } from '../../middlewares/respond'
 import { signUpWithPhone } from './signup.withPhone'
 import { checkPhone } from './checkphone'
 import { verifyToken } from '../../middlewares/verifyToken'
 import { changePassword } from './changePassword'
-
+import { checkRequest } from '../../middlewares/checkRequest'
 const authRouter = express.Router()
 
 authRouter.post('/signup-with-email', signUpWithEmail, respond)
@@ -19,15 +19,7 @@ authRouter.post('/verify', verifyEmail, respond)
 authRouter.post('/resendCode', resendCode, respond)
 authRouter.post(
   '/login',
-  (req, res, next) => {
-    if (!req.body.email && !req.body.phoneNumber) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'phone or email are required'
-      })
-    }
-    return next()
-  },
+  checkRequest,
   signinWithEmail,
   signinWithPhone,
   respond
@@ -40,8 +32,20 @@ authRouter.post(
   continueWithGoogle,
   respond
 )
-authRouter.post('/forgotPassword', forgotPassword, respond)
-authRouter.post('/resetPassword', resetPassword, respond)
+authRouter.post(
+  '/forgotPassword',
+  checkRequest,
+  forgotPassword,
+  forgotPasswordWithPhone,
+  respond
+)
+authRouter.post(
+  '/resetPassword',
+  checkRequest,
+  resetPassword,
+  resetPasswordWithPhone,
+  respond
+)
 authRouter.get('/checkPhone', checkPhone, respond)
 authRouter.put('/changePassword/:userId', verifyToken, changePassword, respond)
 

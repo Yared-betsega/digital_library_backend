@@ -16,7 +16,7 @@ export const signUpWithEmail = async (
   const { email, phoneNumber, password, firstName, lastName } = req.body
   const emailExists = await User.findOne({ email })
   if (emailExists) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Email already exsists'
     }
@@ -30,7 +30,7 @@ export const signUpWithEmail = async (
   }
   const result = validateInput(user)
   if (result.error) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: result.error.details[0].message
     }
@@ -38,7 +38,7 @@ export const signUpWithEmail = async (
   }
 
   const newUser = await createUser(email, password, firstName, lastName)
-  res.locals = {
+  res.locals.json = {
     statusCode: 201,
     data: newUser
   }
@@ -53,14 +53,14 @@ export const verifyEmail = async (
   const { email, otp } = req.body
   const checkUser = await User.findOne({ email: email })
   if (!checkUser) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Wrong verification code'
     }
     return next()
   }
   if (checkUser.isVerified) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'User is already Verified'
     }
@@ -68,13 +68,13 @@ export const verifyEmail = async (
   }
   const user = await validateUser(email, otp)
   if (!user) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Wrong verification code'
     }
     return next()
   }
-  res.locals = {
+  res.locals.json = {
     statusCode: 200,
     message: 'Account successfully verified'
   }
@@ -109,7 +109,7 @@ export const resendCode = async (
   const { email } = req.body
   const otp = await OTP.findOne({ email })
   if (!otp) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 404,
       message: 'User not registered'
     }
@@ -126,13 +126,13 @@ export const resendCode = async (
       OTP: newOtp,
       type: 'OTP'
     })
-    res.locals = {
+    res.locals.json = {
       statusCode: 200,
       message: 'New email verification code sent successfully'
     }
     return next()
   } catch (error) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Cannot resend verification code'
     }

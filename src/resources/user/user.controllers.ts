@@ -12,13 +12,46 @@ export const fetchAllUsers = async (
   next: NextFunction
 ) => {
   const users = await User.find({})
-  res.locals = {
+  res.locals.json = {
     statusCode: 200,
     data: users
   }
   return next()
 }
 
+export const fetchUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id } = res.locals.payload
+
+  const user = await User.findById(_id)
+
+  if (!user) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'user not found'
+    }
+    return next()
+  }
+
+  res.locals.json = {
+    statusCode: 200,
+    data: _.pick(user, [
+      'firstName',
+      'middleName',
+      'lastName',
+      'phoneNumber',
+      'bio',
+      'birthDate',
+      'photoURL',
+      'educationPlace',
+      'educationFieldOfStudy'
+    ])
+  }
+  return next()
+}
 export const fetchUserByEmail = async (
   req: Request,
   res: Response,
@@ -27,13 +60,13 @@ export const fetchUserByEmail = async (
   const { email } = req.params
   const user = await User.findOne({ email })
   if (!user) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 404,
       message: "A user with the given email doesn't exist"
     }
     return next()
   }
-  res.locals = {
+  res.locals.json = {
     statusCode: 200,
     data: user
   }
@@ -45,15 +78,16 @@ export const updateUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.params.id !== req.body.user._id) {
-    res.locals = {
+  if (req.params.id !== res.locals.payload._id) {
+    console.log(res.locals)
+    res.locals.json = {
       statusCode: 403,
       message: 'You are not authorized to edit this account'
     }
     return next()
   }
   if (req.body.email || req.body.password || req.body.phoneNumber) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 403,
       message: 'Forbidden action'
     }
@@ -63,14 +97,14 @@ export const updateUser = async (
     $set: req.body
   })
     .then((user) => {
-      res.locals = {
+      res.locals.json = {
         statusCode: 200,
         date: _.pick(user, ['email', 'phoneNumber'])
       }
       return next()
     })
     .catch((err) => {
-      res.locals = {
+      res.locals.json = {
         statusCode: 400,
         message: 'Cannot update user'
       }
@@ -86,7 +120,7 @@ export const deleteUser = async (
   const { email } = req.params
   const user = await User.deleteOne({ email })
   if (!user) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Cannot remove account'
     }
@@ -94,7 +128,7 @@ export const deleteUser = async (
   }
 
   const otp = await OTP.deleteOne({ email })
-  res.locals = {
+  res.locals.json = {
     statusCode: 200,
     message: 'Account successfully deleted'
   }
@@ -110,13 +144,13 @@ export const deleteAll = async (
     await User.deleteMany({})
     await OTP.deleteMany({})
     console.log('del')
-    res.locals = {
+    res.locals.json = {
       statusCode: 200,
       message: 'All accounts deleted'
     }
     return next()
   } catch (error) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Cannot delete all accounts'
     }

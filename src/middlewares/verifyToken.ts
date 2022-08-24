@@ -6,9 +6,10 @@ export const verifyToken = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.header('x-auth-token')
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
 
-  if (!token) {
+  if (token == null) {
     return res.status(401).json({
       statusCode: 401,
       message: 'Access Denied'
@@ -16,10 +17,13 @@ export const verifyToken = (
   }
 
   try {
-    const verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    req.body.user = verified
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    res.locals = {
+      payload: payload
+    }
     return next()
   } catch (error) {
+    console.log(error)
     res.status(401).json({
       statusCode: 401,
       message: 'Invalid Token!'

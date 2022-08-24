@@ -20,7 +20,7 @@ export const signinWithEmail = async (
     })
 
     if (!user) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 401,
         message: 'Incorrect email or password'
       }
@@ -29,7 +29,7 @@ export const signinWithEmail = async (
 
     const isMatched = await bcrypt.compare(req.body.password, user.password)
     if (!isMatched) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 401,
         message: 'Incorrect email or password'
       }
@@ -37,15 +37,14 @@ export const signinWithEmail = async (
     }
 
     if (!user.isVerified) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 401,
         message: 'User is not verified'
       }
       return next()
     }
-
     const token = JWT.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET)
-    res.locals = {
+    res.locals.json = {
       statusCode: 200,
       data: {
         token: token
@@ -53,7 +52,7 @@ export const signinWithEmail = async (
     }
     return next()
   } catch (error) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 500,
       message: 'Sign in failed'
     }
@@ -72,7 +71,7 @@ export const signinWithPhone = async function (
   const { phoneNumber, password } = req.body
   const user = await User.findOne({ phoneNumber: phoneNumber })
   if (!user) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 401,
       message: 'Incorrect phone number or password'
     }
@@ -81,7 +80,7 @@ export const signinWithPhone = async function (
 
   const validPassword = await bcrypt.compare(password, user.password)
   if (!validPassword) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 401,
       message: 'Incorrect phone number or password'
     }
@@ -89,7 +88,7 @@ export const signinWithPhone = async function (
   }
 
   if (!user.isVerified) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 401,
       message: 'User is not verified'
     }
@@ -97,7 +96,7 @@ export const signinWithPhone = async function (
   }
 
   const token = JWT.sign({ _id: user._id }, process.env.ACCESS_SECRET_TOKEN)
-  res.locals = {
+  res.locals.json = {
     statusCode: 200,
     token: token
   }

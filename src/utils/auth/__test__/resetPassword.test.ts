@@ -4,6 +4,7 @@ import { setUp, dropCollections, dropDatabase } from '../../db/connect'
 import { User } from '../../../resources/user/user.model'
 import { OTP } from '../../../resources/OTP/otp.model'
 import { generateOTP } from '../../../helpers/otp'
+import { getAuth } from 'firebase-admin/auth'
 let mongoServer: any
 jest.setTimeout(10000)
 beforeAll(async () => {
@@ -16,6 +17,12 @@ beforeAll(async () => {
   })
   const user2 = await User.create({
     email: 'testEmail2@gmail.com',
+    firstName: 'testt',
+    lastName: 'father name',
+    password: '82482asf:'
+  })
+  const user3 = await User.create({
+    phoneNumber: '+251973835632',
     firstName: 'testt',
     lastName: 'father name',
     password: '82482asf:'
@@ -75,6 +82,58 @@ describe('Reset password Test', () => {
         otp: otp.otpCode
       })
       .expect(200)
+    expect(response.body.message).toBe('Password Successfully changed!')
+  })
+})
+
+describe('Reset password with phone', () => {
+  it('return status code 400 if the phone number is not saved in our database', async () => {
+    const response = await supertest(app)
+      .post('/api/v1/auth/resetPassword')
+      .send({
+        token: ' user firebase token',
+        phoneNumber: '+251934556734',
+        newPassword: 'newP@55w0rd'
+      })
+      .expect(404)
+    expect(response.body.message).toBe('User Not found')
+  })
+  it("return status code 400 if new password doesn't meet the requirement", async () => {
+    const response = await supertest(app)
+      .post('/api/v1/auth/resetPassword')
+      .send({
+        token: ' user firebase token',
+        phoneNumber: '+251973835632',
+        newPassword: 'ab'
+      })
+      .expect(400)
+    expect(response.body.message).not.toBeNull()
+  })
+  it('should fail if user is not verified', async () => {
+    const toBeReturned: any = { error: "Couldn't verify user" }
+    jest.spyOn(getAuth(), 'verifyIdToken').mockRejectedValue(toBeReturned)
+    const response = await supertest(app)
+      .post('/api/v1/auth/resetPassword')
+      .send({
+        token: ' Invalid Token',
+        phoneNumber: '+251973835632',
+        newPassword: 'newP@55w0rd'
+      })
+    expect(response.status).toBe(400)
+    expect(response.body.message).toStrictEqual(toBeReturned.error)
+  })
+  it('should update and save new password if user token is verified', async () => {
+    const toBeReturned: any = {}
+    jest.spyOn(getAuth(), 'verifyIdToken').mockResolvedValue(toBeReturned)
+    const response = await supertest(app)
+      .post('/api/v1/auth/resetPassword')
+      .send({
+        token: ' Valid Token',
+        phoneNumber: '+251973835632',
+        newPassword: 'newP@55w0rd'
+      })
+
+    expect(response.body.statusCode).toBe(200)
     expect(response.body.message).toBe('Password Successfully changed!')
   })
 })
