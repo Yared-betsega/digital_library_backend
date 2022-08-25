@@ -39,6 +39,8 @@ export const fetchUserById = async (
   res.locals.json = {
     statusCode: 200,
     data: _.pick(user, [
+      '_id',
+      'email',
       'firstName',
       'middleName',
       'lastName',
