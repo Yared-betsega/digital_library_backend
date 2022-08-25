@@ -99,7 +99,9 @@ export const signinWithPhone = async function (
   const token = JWT.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET)
   res.locals.json = {
     statusCode: 200,
-    token: token
+    data: {
+      token: token
+    }
   }
   return next()
 }
