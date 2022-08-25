@@ -46,7 +46,7 @@ authRouter.post(
   resetPasswordWithPhone,
   respond
 )
-authRouter.get('/checkPhone', checkPhone, respond)
+authRouter.post('/checkPhone', checkPhone, respond)
 authRouter.put('/changePassword/:userId', verifyToken, changePassword, respond)
 
 export default authRouter
