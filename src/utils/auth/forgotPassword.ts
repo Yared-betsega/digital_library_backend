@@ -36,7 +36,7 @@ export const forgotPassword = async (
   try {
     const info = await sendMail({
       to: email,
-      link: `http://localhost:5000/forgotPassword/${email}/${OTPGenerated}`,
+      link: `http://localhost:3000/auth/reset-password/?email=${email}&otp=${OTPGenerated}`,
       type: 'link'
     })
     res.locals.json = {
