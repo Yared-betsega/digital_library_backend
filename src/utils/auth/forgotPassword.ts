@@ -64,14 +64,14 @@ export const forgotPasswordWithPhone = async (
 
   const user = await User.findOne({ phoneNumber })
   if (!user) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 404,
       message: 'User Not found'
     }
     return next()
   }
   if (!token) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 404,
       message: 'Token Not found'
     }
@@ -80,7 +80,7 @@ export const forgotPasswordWithPhone = async (
   getAuth()
     .verifyIdToken(token)
     .then(async (decodedToken) => {
-      res.locals = {
+      res.locals.json = {
         statusCode: 200,
         token: token
       }
@@ -89,7 +89,7 @@ export const forgotPasswordWithPhone = async (
 
     .catch((error) => {
       console.log(error)
-      res.locals = {
+      res.locals.json = {
         statusCode: 400,
         message: "Couldn't verify user"
       }

@@ -12,10 +12,10 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body
-    const userId = req.params.userId
+    const { userId } = res.locals
     const user = await User.findById(userId)
     if (!user) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 404,
         message: 'User not found'
       }
@@ -25,7 +25,7 @@ export const changePassword = async (
     const isMatched = await bcrypt.compare(oldPassword, user.password)
 
     if (!isMatched) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 401,
         message: 'Incorrect password'
       }
@@ -33,7 +33,7 @@ export const changePassword = async (
     }
     const validPassword = validateInput(newPassword)
     if (validPassword.error) {
-      res.locals = {
+      res.locals.json = {
         statusCode: 400,
         message: validPassword.error.details[0].message
       }
@@ -43,13 +43,13 @@ export const changePassword = async (
     user.password = await encrypt(newPassword)
     await user.save()
 
-    res.locals = {
+    res.locals.json = {
       statusCode: 200,
       message: 'Password updated successfully'
     }
     return next()
   } catch (err) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Could not change password'
     }
@@ -57,7 +57,7 @@ export const changePassword = async (
   }
 }
 
-function validateInput(password) {
+export function validateInput(password) {
   const complexityOptions = {
     min: 8,
     max: 30,

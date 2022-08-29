@@ -7,6 +7,7 @@ import cors from 'cors'
 import { connect } from './utils/db/setupDB'
 import authRouter from './utils/auth/auth.router'
 import userRouter from './resources/user/user.router'
+import materialRouter from './resources/material/material.router'
 
 export const app = express()
 
@@ -23,6 +24,7 @@ app.use(morgan('dev'))
 // })
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/user', userRouter)
+app.use('/api/v1/material', materialRouter)
 app.use((req, res) => {
   res.json({ data: 'Hello World!' })
 })

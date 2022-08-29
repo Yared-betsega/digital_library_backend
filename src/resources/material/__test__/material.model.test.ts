@@ -4,7 +4,11 @@ import { setUp, dropDatabase, dropCollections } from '../../../utils/db/connect'
 
 const userData1 = {
   levelOfEducation: 'University',
-  materialType: 'Book',
+  user: new mongoose.Types.ObjectId(),
+  department: 'electrical',
+  title: 'oop',
+  upvoteCount: 20,
+  type: 'Book',
   typeId: new mongoose.Types.ObjectId(),
   viewCount: 2,
   course: 'test course'
@@ -19,7 +23,7 @@ const userData2 = {
 
 const userData3 = {
   levelOfEducation: 'University',
-  materialType: 'Wrong',
+  materialType: 'Book',
   typeId: new mongoose.Types.ObjectId(),
   viewCount: 2,
   course: 'test course'
@@ -68,7 +72,7 @@ describe('Material Model', () => {
       })
     })
     it('should return the schema of materialType', async () => {
-      const materialType = Material.schema.obj.materialType
+      const materialType = Material.schema.obj.type
       expect(materialType).toEqual({
         type: String,
         enum: ['Book', 'Video', 'Notes', 'Quiz'],
@@ -78,6 +82,7 @@ describe('Material Model', () => {
     it('should return the schema of typeId', async () => {
       const typeId = Material.schema.obj.typeId
       expect(typeId).toEqual({
+        refPath: 'type',
         type: Schema.Types.ObjectId,
         required: true
       })
@@ -123,7 +128,7 @@ describe('Material Model', () => {
           }
         )
         expect(err).toBeInstanceOf(mongoose.Error.ValidationError)
-        expect(err.errors.materialType).toBeDefined()
+        expect(err.errors.type).toBeDefined()
       })
       it('should return an error, given an invalid typeId field', async () => {
         const materialPrototype = userData4
