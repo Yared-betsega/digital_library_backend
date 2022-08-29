@@ -5,8 +5,61 @@ import { Book } from '../book/book.model'
 import { setUp } from '../../utils/db/connect'
 import { User } from '../user/user.model'
 import { uploadBook } from '../book/book.controllers'
+import { isValidObjectId } from 'mongoose'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
+}
+
+export const fetchMaterialById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'Invalid ID'
+      }
+      return next()
+    }
+
+    const material = await Material.findByIdAndUpdate(req.params.id, {
+      $inc: { viewCount: 1 }
+    })
+      .select('-__v')
+      .populate([
+        {
+          path: 'typeId',
+          select: ' -__v'
+        },
+        {
+          path: 'user',
+          select: 'firstName lastName phoneNumber email '
+        }
+      ])
+    if (!material) {
+      res.locals.json = {
+        statusCode: 404,
+        message: 'material not found'
+      }
+      return next()
+    }
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        materials: material
+      }
+    }
+    return next()
+  } catch (err) {
+    console.log(err)
+    res.locals.json = {
+      statusCode: 500,
+      message: 'Server failed'
+    }
+    return next()
+  }
 }
 export const recommend = async (
   req: Request,

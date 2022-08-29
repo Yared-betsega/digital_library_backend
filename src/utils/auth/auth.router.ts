@@ -36,6 +36,7 @@ authRouter.post(
 )
 authRouter.post(
   '/forgotPassword',
+
   checkRequest,
   forgotPassword,
   forgotPasswordWithPhone,
@@ -43,13 +44,15 @@ authRouter.post(
 )
 authRouter.post(
   '/resetPassword',
+
   checkRequest,
   resetPassword,
   resetPasswordWithPhone,
   respond
 )
+
 authRouter.post('/checkPhone', checkPhone, respond)
-authRouter.put('/changePassword/:userId', verifyToken, changePassword, respond)
+authRouter.put('/changePassword', verifyToken, changePassword, respond)
 
 authRouter.post('/isUserRegistered', isUserRegistered, respond)
 
