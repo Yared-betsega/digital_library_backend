@@ -70,11 +70,7 @@ export const resetPasswordWithPhone = async (
   }
   const user = await User.findOne({ phoneNumber })
   if (!user) {
-<<<<<<< HEAD
-    res.locals = {
-=======
     res.locals.json = {
->>>>>>> 581d1ce6ced5109a94b7dfc0824e2c5cfa3b3986
       statusCode: 404,
       message: 'User Not found'
     }
@@ -85,11 +81,7 @@ export const resetPasswordWithPhone = async (
   }
   const validPassword = validateInput(newPassword)
   if (validPassword.error) {
-<<<<<<< HEAD
-    res.locals = {
-=======
     res.locals.json = {
->>>>>>> 581d1ce6ced5109a94b7dfc0824e2c5cfa3b3986
       statusCode: 400,
       message: validPassword.error.details[0].message
     }
@@ -101,22 +93,14 @@ export const resetPasswordWithPhone = async (
     .then(async (decodedToken) => {
       user.password = await encrypt(newPassword)
       const savedUser: IUserInterface = await user.save()
-<<<<<<< HEAD
-      res.locals = {
-=======
       res.locals.json = {
->>>>>>> 581d1ce6ced5109a94b7dfc0824e2c5cfa3b3986
         statusCode: 200,
         message: 'Password Successfully changed!'
       }
       return next()
     })
     .catch((error) => {
-<<<<<<< HEAD
-      res.locals = {
-=======
       res.locals.json = {
->>>>>>> 581d1ce6ced5109a94b7dfc0824e2c5cfa3b3986
         statusCode: 400,
         message: "Couldn't verify user"
       }
