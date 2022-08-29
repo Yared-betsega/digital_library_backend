@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
+import { Material } from './../material/material.model'
 
 export interface IUserInterface {
   email: String
@@ -10,9 +11,13 @@ export interface IUserInterface {
   lastName: String
   birthDate: Date
   bio: String
+  contributions: Number
+  upVotes: []
+  // material is to be imported
   photoURL: String
   educationPlace: String
   educationFieldOfStudy: String
+  levelOfEducation: String
 }
 
 const userSchema: Schema<IUserInterface> = new mongoose.Schema({
@@ -61,6 +66,17 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
     Required: false
   },
 
+  contributions: {
+    type: Number,
+    default: 0
+  },
+
+  upVotes: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: Material,
+    Required: false
+  },
+
   photoURL: {
     type: String,
     Required: false
@@ -73,7 +89,12 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
 
   educationFieldOfStudy: {
     type: String,
-    Required: false
+    enum: ['AI', '']
+  },
+
+  levelOfEducation: {
+    type: String,
+    enum: ['HighSchool', 'University']
   }
 })
 

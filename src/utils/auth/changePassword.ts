@@ -12,7 +12,7 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body
-    const userId = req.params.userId
+    const { userId } = res.locals
     const user = await User.findById(userId)
     if (!user) {
       res.locals.json = {

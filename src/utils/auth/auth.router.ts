@@ -12,6 +12,7 @@ import { checkPhone } from './checkphone'
 import { verifyToken } from '../../middlewares/verifyToken'
 import { changePassword } from './changePassword'
 import { checkRequest } from '../../middlewares/checkRequest'
+import { isUserRegistered } from './isUserRegistered'
 const authRouter = express.Router()
 
 authRouter.post('/signup-with-email', signUpWithEmail, respond)
@@ -28,6 +29,7 @@ authRouter.post(
 authRouter.post('/signup-with-phone', signUpWithPhone, respond)
 authRouter.post(
   '/continue-with-google',
+
   verifyGoogle,
   continueWithGoogle,
   respond
@@ -48,5 +50,7 @@ authRouter.post(
 )
 authRouter.post('/checkPhone', checkPhone, respond)
 authRouter.put('/changePassword/:userId', verifyToken, changePassword, respond)
+
+authRouter.post('/isUserRegistered', isUserRegistered, respond)
 
 export default authRouter

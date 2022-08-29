@@ -5,7 +5,10 @@ import { OTP } from '../OTP/otp.model'
 import { generateToken } from '../../helpers/generateToken'
 import { v4 as uuidv4 } from 'uuid'
 import { userInfo } from 'os'
-import _ from 'lodash'
+import _, { range } from 'lodash'
+
+import { getMaterialsByUserId } from '../material/material.controllers'
+import { getUpvoteCountByMaterialId } from '../upvote/upvoteControllers'
 export const fetchAllUsers = async (
   req: Request,
   res: Response,
@@ -155,6 +158,60 @@ export const deleteAll = async (
     res.locals.json = {
       statusCode: 400,
       message: 'Cannot delete all accounts'
+    }
+    return next()
+  }
+}
+
+export const topContributors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const users = await User.find({}).sort({ contributions: -1 })
+
+    const materials = []
+
+    for (let index = 0; index < 10; index++) {
+      let m = await getMaterialsByUserId(users[index]._id)
+      materials.push(m)
+    }
+
+    const upVotes = []
+    for (let i = 0; i < materials.length; i++) {
+      let upvote = 0
+      for (let index = 0; index < materials[i].length; index++) {
+        upvote += await getUpvoteCountByMaterialId(materials[i][index]._id)
+      }
+      upVotes.push(upvote)
+    }
+
+    const Users = []
+    for (let index = 0; index < 10; index++) {
+      let userObj = {
+        firstName: users[index].firstName,
+        lastName: users[index].lastName,
+        middleName: users[index].middleName,
+        email: users[index].email,
+        contributions: users[index].contributions,
+        photoURL: users[index].photoURL,
+        upVotes: upVotes[index]
+      }
+
+      Users.push(userObj)
+    }
+
+    res.locals.json = {
+      statusCode: 200,
+      data: Users
+    }
+
+    return next()
+  } catch (e) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Cannot retrieve users'
     }
     return next()
   }
