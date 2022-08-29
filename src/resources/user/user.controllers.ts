@@ -117,14 +117,22 @@ export const updateUser = async (
     })
 }
 
-export const deleteUser = async (
+export const deleteUserByEmail = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const { email } = req.params
-  const user = await User.deleteOne({ email })
+  const user = await User.findOne({ email })
   if (!user) {
+    res.locals.json = {
+      statusCode: 404,
+      message: 'User doesnot exist'
+    }
+    return next()
+  }
+  const deletedUser = await User.deleteOne({ email })
+  if (!deletedUser) {
     res.locals.json = {
       statusCode: 400,
       message: 'Cannot remove account'
@@ -140,6 +148,35 @@ export const deleteUser = async (
   return next()
 }
 
+export const deleteUserByPhone = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { phoneNumber } = req.params
+  const user = await User.findOne({ phoneNumber })
+  if (!user) {
+    res.locals.json = {
+      statusCode: 404,
+      message: 'User doesnot exist'
+    }
+    return next()
+  }
+  const deletedUser = await User.deleteOne({ phoneNumber })
+  if (!deletedUser) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Cannot remove account'
+    }
+    return next()
+  }
+
+  res.locals.json = {
+    statusCode: 200,
+    message: 'Account successfully deleted'
+  }
+  return next()
+}
 export const deleteAll = async (
   req: Request,
   res: Response,
