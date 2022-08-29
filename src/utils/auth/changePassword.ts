@@ -12,8 +12,8 @@ export const changePassword = async (
 ) => {
   try {
     const { oldPassword, newPassword } = req.body
-    const { userId } = res.locals
-    const user = await User.findById(userId)
+    const { _id } = res.locals
+    const user = await User.findById(_id)
     if (!user) {
       res.locals.json = {
         statusCode: 404,

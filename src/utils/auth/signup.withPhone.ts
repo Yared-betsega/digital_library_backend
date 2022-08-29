@@ -14,7 +14,7 @@ const app: App = initializeApp({
 })
 
 export const signUpWithPhone = async (req, res) => {
-  const { token, phoneNumber, password, firstName, lastName } = req.body
+  const { token, phoneNumber, firstName, lastName, password } = req.body
   const validate: PhoneResult = validatePhone(phoneNumber)
   if (validate.isValid == false) {
     return res.status(400).json({

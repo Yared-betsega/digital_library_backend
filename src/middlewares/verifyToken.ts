@@ -18,9 +18,7 @@ export const verifyToken = (
 
   try {
     const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    res.locals = {
-      payload: payload
-    }
+    res.locals = JSON.parse(JSON.stringify(payload))
     return next()
   } catch (error) {
     console.log(error)
