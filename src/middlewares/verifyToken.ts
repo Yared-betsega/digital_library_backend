@@ -8,7 +8,6 @@ export const verifyToken = (
 ) => {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
-
   if (token == null) {
     return res.status(401).json({
       statusCode: 401,

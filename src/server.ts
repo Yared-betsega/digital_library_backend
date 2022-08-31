@@ -8,6 +8,8 @@ import { connect } from './utils/db/setupDB'
 import authRouter from './utils/auth/auth.router'
 import userRouter from './resources/user/user.router'
 import materialRouter from './resources/material/material.router'
+import { replyRouter } from './resources/reply/reply.router'
+import commentRouter from './resources/comment/comment.router'
 
 export const app = express()
 
@@ -25,6 +27,8 @@ app.use(morgan('dev'))
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/user', userRouter)
 app.use('/api/v1/material', materialRouter)
+app.use('/api/v1/comment', commentRouter)
+app.use('/api/v1/reply', replyRouter)
 app.use((req, res) => {
   res.json({ data: 'Hello World!' })
 })

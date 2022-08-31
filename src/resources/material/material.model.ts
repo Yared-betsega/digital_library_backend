@@ -25,11 +25,12 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
     },
     department: {
       type: String,
-      enum: [],
+      enum: ['SoftwareEngineering', 'ElectricalEngineering'],
       required: true
     },
     tags: {
-      type: [String]
+      type: [String],
+      required: false
     },
     upvoteCount: {
       type: Number,
@@ -46,6 +47,7 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
     levelOfEducation: {
       type: String,
       enum: ['University', 'Highschool'],
+      default: 'University',
       required: true
     },
     type: {
@@ -64,7 +66,7 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
     },
     course: {
       type: String,
-      required: true
+      required: false
     }
   },
   {

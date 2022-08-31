@@ -5,7 +5,7 @@ import { setUp, dropDatabase, dropCollections } from '../../../utils/db/connect'
 const userData1 = {
   levelOfEducation: 'University',
   user: new mongoose.Types.ObjectId(),
-  department: 'electrical',
+  department: 'ElectricalEngineering',
   title: 'oop',
   upvoteCount: 20,
   type: 'Book',
@@ -44,7 +44,21 @@ const userData5 = {
 }
 const userData6 = {
   levelOfEducation: 'University',
-  materialType: 'Book',
+  user: new mongoose.Types.ObjectId(),
+  department: 'ElectricalEngineering',
+  title: 'oop',
+  upvoteCount: 20,
+  type: 'Book',
+  typeId: new mongoose.Types.ObjectId(),
+  viewCount: 2
+}
+
+const userData7 = {
+  user: new mongoose.Types.ObjectId(),
+  department: 'ElectricalEngineering',
+  title: 'oop',
+  upvoteCount: 20,
+  type: 'Book',
   typeId: new mongoose.Types.ObjectId(),
   viewCount: 2
 }
@@ -68,6 +82,7 @@ describe('Material Model', () => {
       expect(levelOfEducation).toEqual({
         type: String,
         enum: ['University', 'Highschool'],
+        default: 'University',
         required: true
       })
     })
@@ -91,14 +106,14 @@ describe('Material Model', () => {
       const viewCount = Material.schema.obj.viewCount
       expect(viewCount).toEqual({
         type: Number,
-        required: true
+        default: 0
       })
     })
     it('should return the schema of course', async () => {
       const course = Material.schema.obj.course
       expect(course).toEqual({
         type: String,
-        required: true
+        required: false
       })
     })
   }),
@@ -152,7 +167,7 @@ describe('Material Model', () => {
         expect(err).toBeInstanceOf(mongoose.Error.ValidationError)
         expect(err.errors.viewCount).toBeDefined()
       })
-      it('should return an error, given that the course field is missing', async () => {
+      it('should not return an error, given that the course field is missing', async () => {
         const materialPrototype = userData6
         let err: any
         const material = await Material.create(materialPrototype).catch(
@@ -160,8 +175,13 @@ describe('Material Model', () => {
             err = error
           }
         )
-        expect(err).toBeInstanceOf(mongoose.Error.ValidationError)
-        expect(err.errors.course).toBeDefined()
+        expect(err).toBeUndefined()
+      })
+
+      it('the default value for levelOfEducation should be University', async () => {
+        const materialPrototype = userData7
+        const material = await Material.create(materialPrototype)
+        expect(material.levelOfEducation).toBe('University')
       })
     })
 })

@@ -44,7 +44,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Data science',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -56,7 +56,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Web development',
-      department: 'Software engineering'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -68,7 +68,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Deep learning',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -80,7 +80,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Data science',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -92,7 +92,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Web development',
-      department: 'Software engineering'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -104,7 +104,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Deep learning',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -116,7 +116,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Data science',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -128,7 +128,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Web development',
-      department: 'Software engineering'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -140,7 +140,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Deep learning',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -152,7 +152,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Data science',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -164,7 +164,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Web development',
-      department: 'Software engineering'
+      department: 'SoftwareEngineering'
     })
     await Material.create({
       title: 'Software',
@@ -176,7 +176,7 @@ describe('Material recommender Test', () => {
       typeId: _id,
       viewCount: 134,
       course: 'Deep learning',
-      department: 'AI'
+      department: 'SoftwareEngineering'
     })
     const response = await supertest(app)
       .post('/api/v1/material/recommend')

@@ -66,40 +66,49 @@ export const signinWithPhone = async function (
   res: Response,
   next: NextFunction
 ) {
-  if (req.body.email || !req.body.phoneNumber) {
-    return next()
-  }
-  const { phoneNumber, password } = req.body
-  const user = await User.findOne({ phoneNumber: phoneNumber })
-  if (!user) {
+  try {
+    if (req.body.email || !req.body.phoneNumber) {
+      return next()
+    }
+    const { phoneNumber, password } = req.body
+    const user = await User.findOne({ phoneNumber: phoneNumber })
+    if (!user) {
+      res.locals.json = {
+        statusCode: 401,
+        message: 'Incorrect phone number or password'
+      }
+      return next()
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password)
+    if (!validPassword) {
+      res.locals.json = {
+        statusCode: 401,
+        message: 'Incorrect phone number or password'
+      }
+      return next()
+    }
+
+    if (!user.isVerified) {
+      res.locals.json = {
+        statusCode: 401,
+        message: 'User is not verified'
+      }
+      return next()
+    }
+
+    const token = JWT.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET)
     res.locals.json = {
-      statusCode: 401,
-      message: 'Incorrect phone number or password'
+      statusCode: 200,
+      data: {
+        token: token
+      }
     }
     return next()
-  }
-
-  const validPassword = await bcrypt.compare(password, user.password)
-  if (!validPassword) {
+  } catch (error) {
     res.locals.json = {
-      statusCode: 401,
-      message: 'Incorrect phone number or password'
+      statusCode: 500,
+      message: 'sign in failed'
     }
-    return next()
   }
-
-  if (!user.isVerified) {
-    res.locals.json = {
-      statusCode: 401,
-      message: 'User is not verified'
-    }
-    return next()
-  }
-
-  const token = JWT.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET)
-  res.locals.json = {
-    statusCode: 200,
-    token: token
-  }
-  return next()
 }

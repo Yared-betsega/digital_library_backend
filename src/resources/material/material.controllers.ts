@@ -6,6 +6,7 @@ import { setUp } from '../../utils/db/connect'
 import { User } from '../user/user.model'
 import { uploadBook } from '../book/book.controllers'
 import { isValidObjectId } from 'mongoose'
+import { Tag } from '../tag/tag.model'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -71,7 +72,6 @@ export const recommend = async (
   let remains = []
   let educationFieldOfStudy
   let levelOfEducation
-
   let limit = toInteger(req.query.limit) || 10
   let skip = toInteger(req.query.skip) || 1
   const estimate = await Material.estimatedDocumentCount()
@@ -178,12 +178,19 @@ export const createMaterial = async (
     }
     return next()
   }
+  if (!req.body.tags || req.body.tags.length == 0) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Please enter at least one tag'
+    }
+    return next()
+  }
   const bookUploadResult = await uploadBook(req.file)
   const { statusCode, data: book } = bookUploadResult
   if (statusCode == 400) {
     res.locals.json = {
       statusCode,
-      message: 'cannot upload book'
+      message: bookUploadResult.message
     }
     return next()
   }
@@ -203,7 +210,6 @@ export const createMaterial = async (
       title,
       thumbnail,
       department,
-      tags,
       user,
       description,
       levelOfEducation,
@@ -218,6 +224,17 @@ export const createMaterial = async (
       }
       return next()
     }
+    tags.forEach(async (tagName) => {
+      let tag = await Tag.findOne({ name: tagName })
+      if (!tag) {
+        tag = await Tag.create({
+          name: tagName
+        })
+      }
+      tag.materials.push(material._id)
+      await tag.save()
+    })
+
     res.locals.json = {
       statusCode: 201,
       data: material
@@ -230,4 +247,99 @@ export const createMaterial = async (
     }
     return next()
   }
+}
+
+export const filter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const tags = res.locals.tags
+    const materials = []
+    const added = new Set()
+    for (var key in tags) {
+      const tag = await Tag.findOne({ name: tags[key] }).populate('materials')
+      if (tag) {
+        tag.materials.forEach((material: any) => {
+          if (!added.has(material._id.toString())) {
+            added.add(material._id.toString())
+            materials.push(material)
+          }
+        })
+      }
+    }
+    res.locals.json = {
+      statusCode: 200,
+      data: materials
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'filtering failed'
+    }
+    return next()
+  }
+}
+
+export const search = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const keyword = req.query.keyword
+    let limit = toInteger(req.query.limit) || 10
+    let skip = toInteger(req.query.skip) || 1
+    const estimate = await Material.estimatedDocumentCount()
+    const materials = await Material.find({ title: { $regex: `${keyword}` } })
+      .skip((skip - 1) * limit)
+      .limit(limit)
+      .select('-__v')
+      .populate([
+        {
+          path: 'typeId',
+          select: ' -__v'
+        },
+        {
+          path: 'user',
+          select: 'firstName lastName phoneNumber email '
+        }
+      ])
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        materials: materials,
+        hasNext: Math.ceil(estimate / limit) >= skip + 1
+      }
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Internal server error'
+    }
+  }
+}
+
+export const filterByEachYear = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const materialsByEachYear = {}
+  for (let i = 1; i <= 5; i++) {
+    const tag = await Tag.findOne({ name: i }).populate('materials')
+    if (!tag) {
+      materialsByEachYear[i] = []
+    } else {
+      materialsByEachYear[i] = tag.materials
+    }
+  }
+  res.locals.json = {
+    statusCode: 200,
+    data: materialsByEachYear
+  }
+  return next()
 }

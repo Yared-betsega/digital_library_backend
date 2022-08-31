@@ -20,14 +20,16 @@ describe('Comment Model', () => {
       const userId = Comment.schema.obj.userId
       expect(userId).toEqual({
         type: mongoose.Types.ObjectId,
-        required: true
+        required: true,
+        ref: 'User'
       })
     })
     test('materialId', () => {
       const userId = Comment.schema.obj.materialId
       expect(userId).toEqual({
         type: mongoose.Types.ObjectId,
-        required: true
+        required: true,
+        ref: 'Material'
       })
     })
     test('content', () => {

@@ -5,7 +5,8 @@ export const uploadBook = async (file: any) => {
   let cloudinaryImage
   try {
     cloudinaryImage = await cloudinary.uploader.upload(file.path, {
-      folder: 'Books'
+      folder: 'Books',
+      use_filename: true
     })
   } catch (error) {
     return {
