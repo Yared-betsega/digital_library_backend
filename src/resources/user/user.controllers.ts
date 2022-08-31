@@ -27,7 +27,8 @@ export const fetchUserById = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { _id } = res.locals.payload
+  const { _id } = res.locals
+  
 
   const user = await User.findById(_id)
 
