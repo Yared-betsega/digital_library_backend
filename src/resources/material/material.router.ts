@@ -1,7 +1,8 @@
 import express from 'express'
 import { respond } from '../../middlewares/respond'
 import {
-  createMaterial,
+  createBookMaterial,
+  createVideoMaterial,
   fetchMaterialById,
   filter,
   filterByEachYear,
@@ -22,5 +23,11 @@ materialRouter.get('/filter', extractTags, filter, respond)
 materialRouter.get('/search', search, respond)
 materialRouter.get('/materialsForEachYear', filterByEachYear, respond)
 materialRouter.get('/:id', fetchMaterialById, respond)
-materialRouter.post('/', filterBook.single('book'), createMaterial, respond)
+materialRouter.post(
+  '/book',
+  filterBook.single('book'),
+  createBookMaterial,
+  respond
+)
+materialRouter.post('/video', createVideoMaterial, respond)
 export default materialRouter

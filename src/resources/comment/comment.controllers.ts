@@ -106,3 +106,46 @@ export const getComment = async (req, res, next: NextFunction) => {
     return next()
   }
 }
+export const updateComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id } = res.locals
+  const commentId = req.params.commentId
+  console.log(commentId)
+  try {
+    const comment = await Comment.findById(commentId)
+    if (!(_id == comment.userId)) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'Unautherized user!'
+      }
+      return next()
+    }
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: `No comment with comment id ${commentId}`
+    }
+    return next()
+  }
+  try {
+    const comment = await Comment.findByIdAndUpdate(commentId, {
+      $set: req.body
+    })
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        comment: comment
+      }
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 404,
+      message: 'Bad request'
+    }
+    return next()
+  }
+}

@@ -8,6 +8,7 @@ export interface ICommentInterface {
   materialId: mongoose.Types.ObjectId
   content: string
   replies: [mongoose.Types.ObjectId]
+  numberOfReplies: number
 }
 
 export const CommentSchema = new mongoose.Schema(
@@ -35,7 +36,8 @@ export const CommentSchema = new mongoose.Schema(
       }
     ],
     numberOfReplies: {
-      type: Number
+      type: Number,
+      default: 0
     }
   },
 

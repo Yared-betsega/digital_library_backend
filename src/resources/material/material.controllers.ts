@@ -5,6 +5,7 @@ import { Book } from '../book/book.model'
 import { setUp } from '../../utils/db/connect'
 import { User } from '../user/user.model'
 import { uploadBook } from '../book/book.controllers'
+import { uploadVideo } from '../video/video.controllers'
 import { isValidObjectId } from 'mongoose'
 import { Tag } from '../tag/tag.model'
 export async function getMaterialsByUserId(userId) {
@@ -189,7 +190,7 @@ export async function popular(req: Request, res: Response, next: NextFunction) {
     return next()
   }
 }
-export const createMaterial = async (
+export const createBookMaterial = async (
   req: any,
   res: Response,
   next: NextFunction
@@ -277,6 +278,94 @@ export const createMaterial = async (
   }
 }
 
+export const createVideoMaterial = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.log(req.body)
+  if (!req.body) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Please enter a body'
+    }
+    return next()
+  }
+  if (!req.body.tags || req.body.tags.length == 0) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Please enter at least one tag'
+    }
+    return next()
+  }
+  const videoUploadResult = await uploadVideo(req.body.link)
+  const { statusCode, data: video } = videoUploadResult
+  if (statusCode == 400) {
+    res.locals.json = {
+      statusCode,
+      message: videoUploadResult.message
+    }
+    return next()
+  }
+  const {
+    title,
+    thumbnail,
+    department,
+    user,
+    description,
+    levelOfEducation,
+    type,
+    course
+  } = req.body
+  try {
+    const material = await Material.create({
+      title,
+      thumbnail,
+      department,
+      user,
+      description,
+      levelOfEducation,
+      type,
+      course,
+      typeId: video._id
+    })
+    if (!material) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'Cannot create material'
+      }
+      return next()
+    }
+    let { tags } = req.body
+    if (typeof tags !== typeof []) {
+      tags = [tags]
+    }
+    tags.forEach(async (tagName) => {
+      let tag = await Tag.findOne({ name: tagName })
+
+      if (!tag) {
+        tag = await Tag.create({
+          name: tagName
+        })
+      }
+
+      tag.materials.push(material._id)
+      await tag.save()
+    })
+
+    res.locals.json = {
+      statusCode: 201,
+      data: material
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error
+    }
+    return next()
+  }
+}
 export const filter = async (
   req: Request,
   res: Response,
