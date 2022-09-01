@@ -30,8 +30,7 @@ describe('Material recommender Test', () => {
       email: 'testEmail@gmail.com',
       firstName: 'firstName',
       lastName: 'lastName',
-      password: hashedPassword,
-      educationFieldOfStudy: 'AI'
+      password: hashedPassword
     })
     const token = jwt.sign({ _id: user._id }, process.env.ACCESS_TOKEN_SECRET)
     await Material.create({
@@ -179,10 +178,9 @@ describe('Material recommender Test', () => {
       department: 'SoftwareEngineering'
     })
     const response = await supertest(app)
-      .post('/api/v1/material/recommend')
+      .get('/api/v1/material/recommend')
       .set({ authorization: `Bearer ${token}` })
-      .send()
       .expect(200)
-    expect(response.body.data.length).toBeLessThanOrEqual(10)
+    expect(Object.keys(response.body.data).length).toBeLessThanOrEqual(10)
   })
 })

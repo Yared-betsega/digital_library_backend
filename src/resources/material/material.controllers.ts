@@ -1,4 +1,4 @@
-import { Material } from './material.model'
+import { IMaterialInterface, Material } from './material.model'
 import { Request, Response, NextFunction } from 'express'
 import _, { toInteger } from 'lodash'
 import { Book } from '../book/book.model'
@@ -67,59 +67,82 @@ export const recommend = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { _id } = res.locals
-  let materials = []
-  let remains = []
-  let educationFieldOfStudy
-  let levelOfEducation
-  let limit = toInteger(req.query.limit) || 10
-  let skip = toInteger(req.query.skip) || 1
-  const estimate = await Material.estimatedDocumentCount()
+  try {
+    const limit = toInteger(req.query.limit) || 10
+    const skip = toInteger(req.query.skip) || 1
 
-  const user = await User.findById(_id)
-  if (user) {
-    educationFieldOfStudy = user.educationFieldOfStudy
-    levelOfEducation = user.levelOfEducation
+    let educationFieldOfStudy: String
+    let levelOfEducation: String
+    let type: String
 
-    if (educationFieldOfStudy && levelOfEducation) {
-      materials = await Material.find({
-        levelOfEducation: levelOfEducation,
-        department: educationFieldOfStudy
-      })
-        .skip((skip - 1) * limit)
-        .limit(limit)
+    if (req.query.department)
+      educationFieldOfStudy = req.query.department.toString()
+
+    if (req.query.levelOfEducation)
+      levelOfEducation = req.query.levelOfEducation.toString()
+
+    if (req.query.type) type = req.query.type.toString()
+
+    const { _id } = res.locals
+    const user = await User.findById(_id)
+    if (user) {
+      educationFieldOfStudy = user.educationFieldOfStudy
+      levelOfEducation = user.levelOfEducation
     }
-    if (educationFieldOfStudy && materials.length < limit) {
-      remains = await Material.find({
-        department: educationFieldOfStudy
-      })
-        .skip((skip - 1) * limit)
-        .limit(limit - materials.length)
-      materials = materials.concat(remains)
+    const finder = {
+      levelOfEducation: levelOfEducation || {
+        $ne: null
+      },
+      department: educationFieldOfStudy || {
+        $ne: null
+      },
+      type: type || {
+        $ne: null
+      }
     }
-    if (levelOfEducation && materials.length < limit) {
-      remains = await Material.find({
-        levelOfEducation: levelOfEducation
-      })
-        .skip((skip - 1) * limit)
-        .limit(limit - materials.length)
-      materials = materials.concat(remains)
-    }
-  }
-  if (materials.length < limit) {
-    const remains = await Material.find()
+
+    const estimate = await Material.find({
+      levelOfEducation: levelOfEducation,
+      department: educationFieldOfStudy,
+      type: type
+    }).count()
+    const materials = await Material.find(finder)
       .skip((skip - 1) * limit)
-      .limit(limit - materials.length)
-    materials = materials.concat(remains)
-  }
-  res.locals.json = {
-    statusCode: 200,
-    data: {
-      materials: materials,
-      hasNext: Math.ceil(estimate / limit) >= skip + 1
+      .limit(limit)
+      .select('-__v')
+      .populate([
+        {
+          path: 'typeId',
+          select: ' -__v'
+        },
+        {
+          path: 'user',
+          select: 'firstName lastName phoneNumber email '
+        }
+      ])
+
+    if (Object.keys(materials).length === 0) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'no data found'
+      }
+      return next()
     }
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        materials: materials,
+        hasNext: Math.ceil(estimate / limit) >= skip + 1
+      }
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: "couldn't fetch recommendation"
+    }
+    return next()
   }
-  return next()
 }
 
 export async function popular(req: Request, res: Response, next: NextFunction) {
@@ -198,7 +221,6 @@ export const createMaterial = async (
     title,
     thumbnail,
     department,
-    tags,
     user,
     description,
     levelOfEducation,
@@ -224,13 +246,19 @@ export const createMaterial = async (
       }
       return next()
     }
+    let { tags } = req.body
+    if (typeof tags !== typeof []) {
+      tags = [tags]
+    }
     tags.forEach(async (tagName) => {
       let tag = await Tag.findOne({ name: tagName })
+
       if (!tag) {
         tag = await Tag.create({
           name: tagName
         })
       }
+
       tag.materials.push(material._id)
       await tag.save()
     })
@@ -256,7 +284,9 @@ export const filter = async (
 ) => {
   try {
     const tags = res.locals.tags
-    const materials = []
+    let limit = toInteger(req.query.limit) || 10
+    let skip = toInteger(req.query.skip) || 1
+    let materials = []
     const added = new Set()
     for (var key in tags) {
       const tag = await Tag.findOne({ name: tags[key] }).populate('materials')
@@ -269,9 +299,16 @@ export const filter = async (
         })
       }
     }
+    if (materials.length == 0) {
+      materials = await Material.find({})
+    }
+    const response = paginator(materials, skip, limit)
     res.locals.json = {
       statusCode: 200,
-      data: materials
+      data: {
+        materials: response.data,
+        hasNext: Math.ceil(response.total / limit) >= skip + 1
+      }
     }
     return next()
   } catch (error) {
@@ -323,18 +360,64 @@ export const search = async (
   }
 }
 
+export async function popularByType(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    let limit = toInteger(req.query.limit) || 10
+    let skip = toInteger(req.query.skip) || 1
+    const type: string = req.query.type.toString()
+    // const types = new Map([['Book', Book],['Video', Video],['Quiz', Quiz]]) for future purpopses when the models are implemented
+    const types = new Map([['Book', Book]])
+    const estimate = await types.get(type).estimatedDocumentCount()
+    const materials = await types
+      .get(type)
+      .find()
+      .skip((skip - 1) * limit)
+      .limit(limit)
+      .select('-__v')
+    if (Object.keys(materials).length === 0) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'no data found'
+      }
+      return next()
+    }
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        materials: materials,
+        hasNext: Math.ceil(estimate / limit) >= skip + 1
+      }
+    }
+    return next()
+  } catch (err) {
+    console.log(err)
+    res.locals.json = {
+      statusCode: 500,
+      message: 'Server failed'
+    }
+    return next()
+  }
+}
 export const filterByEachYear = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const { department } = req.query
   const materialsByEachYear = {}
   for (let i = 1; i <= 5; i++) {
+    materialsByEachYear[i] = []
     const tag = await Tag.findOne({ name: i }).populate('materials')
-    if (!tag) {
-      materialsByEachYear[i] = []
-    } else {
-      materialsByEachYear[i] = tag.materials
+    if (tag) {
+      tag.materials.forEach((material: IMaterialInterface) => {
+        if (material.department === department.toString()) {
+          materialsByEachYear[i].push(material)
+        }
+      })
     }
   }
   res.locals.json = {
@@ -342,4 +425,18 @@ export const filterByEachYear = async (
     data: materialsByEachYear
   }
   return next()
+}
+
+function paginator(items, current_page, per_page) {
+  let offset = (current_page - 1) * per_page,
+    paginatedItems = items.slice(offset).slice(0, per_page),
+    total_pages = Math.ceil(items.length / per_page)
+
+  return {
+    pre_page: current_page - 1 ? current_page - 1 : null,
+    next_page: total_pages > current_page ? current_page + 1 : null,
+    total: items.length,
+    total_pages: total_pages,
+    data: paginatedItems
+  }
 }

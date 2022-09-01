@@ -10,6 +10,7 @@ import userRouter from './resources/user/user.router'
 import materialRouter from './resources/material/material.router'
 import { replyRouter } from './resources/reply/reply.router'
 import commentRouter from './resources/comment/comment.router'
+import courseRouter from './resources/course/course.router'
 
 export const app = express()
 
@@ -29,6 +30,7 @@ app.use('/api/v1/user', userRouter)
 app.use('/api/v1/material', materialRouter)
 app.use('/api/v1/comment', commentRouter)
 app.use('/api/v1/reply', replyRouter)
+app.use('/api/v1/course', courseRouter)
 app.use((req, res) => {
   res.json({ data: 'Hello World!' })
 })
