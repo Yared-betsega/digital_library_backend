@@ -22,7 +22,6 @@ export const upvote = async (
   }
 
   const material = await Material.findById(materialId)
-
   if (!material) {
     res.locals.json = {
       statusCode: 404,
