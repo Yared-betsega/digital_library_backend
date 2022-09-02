@@ -12,12 +12,13 @@ export interface IUserInterface {
   birthDate: Date
   bio: String
   contributions: Number
-  upVotes: []
+  upVotes: [mongoose.Types.ObjectId]
   // material is to be imported
   photoURL: String
   educationPlace: String
   educationFieldOfStudy: String
   levelOfEducation: String
+  year: number
 }
 
 const userSchema: Schema<IUserInterface> = new mongoose.Schema({
@@ -90,12 +91,15 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
 
   educationFieldOfStudy: {
     type: String,
-    enum: ['AI', '']
+    enum: ['SoftwareEnginnering', 'ElectricalEngineering']
   },
 
   levelOfEducation: {
     type: String,
     enum: ['HighSchool', 'University']
+  },
+  year: {
+    type: Number
   }
 })
 

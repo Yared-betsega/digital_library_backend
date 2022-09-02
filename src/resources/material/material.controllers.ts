@@ -73,6 +73,7 @@ export const recommend = async (
     const limit = toInteger(req.query.limit) || 10
     const skip = toInteger(req.query.skip) || 1
 
+    let year: number
     let educationFieldOfStudy: String
     let levelOfEducation: String
     let type: String
@@ -85,12 +86,8 @@ export const recommend = async (
 
     if (req.query.type) type = req.query.type.toString()
 
-    const { _id } = res.locals
-    const user = await User.findById(_id)
-    if (user) {
-      educationFieldOfStudy = user.educationFieldOfStudy
-      levelOfEducation = user.levelOfEducation
-    }
+    if (req.query.year) year = Number(req.query.year)
+
     const finder = {
       levelOfEducation: levelOfEducation || {
         $ne: null
@@ -100,14 +97,13 @@ export const recommend = async (
       },
       type: type || {
         $ne: null
+      },
+      year: year || {
+        $ne: null
       }
     }
 
-    const estimate = await Material.find({
-      levelOfEducation: levelOfEducation,
-      department: educationFieldOfStudy,
-      type: type
-    }).count()
+    const estimate = await Material.find(finder).count()
     const materials = await Material.find(finder)
       .skip((skip - 1) * limit)
       .limit(limit)

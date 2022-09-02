@@ -13,6 +13,7 @@ export interface IMaterialInterface {
   typeId: mongoose.Schema.Types.ObjectId
   viewCount: number
   course: string
+  year: number
 }
 export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
   {
@@ -67,6 +68,9 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
     course: {
       type: String,
       required: false
+    },
+    year: {
+      type: Number
     }
   },
   {

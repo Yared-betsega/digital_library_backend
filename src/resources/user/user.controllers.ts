@@ -86,38 +86,34 @@ export const updateUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.params.id !== res.locals.payload._id) {
-    console.log(res.locals)
+  try {
+    const { _id } = res.locals
+
+    if (req.body.email || req.body.password || req.body.phoneNumber) {
+      res.locals.json = {
+        statusCode: 403,
+        message: 'Forbidden action'
+      }
+      return next()
+    }
+    let user = await User.findByIdAndUpdate(_id, {
+      $set: req.body
+    })
+
+    const updatedUser = await User.findById(_id).select('-__v -password')
+
     res.locals.json = {
-      statusCode: 403,
-      message: 'You are not authorized to edit this account'
+      statusCode: 200,
+      data: updatedUser
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 500,
+      message: error.message
     }
     return next()
   }
-  if (req.body.email || req.body.password || req.body.phoneNumber) {
-    res.locals.json = {
-      statusCode: 403,
-      message: 'Forbidden action'
-    }
-    return next()
-  }
-  await User.findByIdAndUpdate(req.params.id, {
-    $set: req.body
-  })
-    .then((user) => {
-      res.locals.json = {
-        statusCode: 200,
-        date: _.pick(user, ['email', 'phoneNumber'])
-      }
-      return next()
-    })
-    .catch((err) => {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'Cannot update user'
-      }
-      return next()
-    })
 }
 
 export const deleteUser = async (
@@ -284,19 +280,19 @@ export const myMaterials = async (
   next: NextFunction
 ) => {
   try {
-    const { _id } = res.locals
+    const id = req.params.id
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
     let type: string
     if (req.query.type) type = req.query.type.toString()
 
     const estimate: number = await Material.find({
-      user: _id,
+      user: id,
       type: type || { $ne: null }
     }).count()
     console.log(estimate)
     const uploaded = await Material.find({
-      user: _id,
+      user: id,
       type: type || { $ne: null }
     })
       .populate({ path: 'typeId' })
