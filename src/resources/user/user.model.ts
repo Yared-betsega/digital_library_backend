@@ -71,11 +71,12 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
     default: 0
   },
 
-  upVotes: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: Material,
-    Required: false
-  },
+  upVotes: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'Upvote'
+    }
+  ],
 
   photoURL: {
     type: String,

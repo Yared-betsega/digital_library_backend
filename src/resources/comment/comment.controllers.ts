@@ -40,7 +40,7 @@ export async function addComment(
     } else {
       res.locals.json = {
         statusCode: 201,
-        data: comment
+        data: { comment: comment }
       }
     }
     return next()
@@ -113,7 +113,54 @@ export const updateComment = async (
 ) => {
   const { _id } = res.locals
   const commentId = req.params.commentId
-  console.log(commentId)
+  const updatedContent = req.body.content
+  if (!updatedContent) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'content field can not be empty!'
+    }
+    return next()
+  }
+  try {
+    const comment = await Comment.findById(commentId)
+    if (_id !== comment.userId.toString()) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'Unauthorized user!'
+      }
+      return next()
+    }
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error.message
+    }
+    return next()
+  }
+  try {
+    const comment = await Comment.findByIdAndUpdate(commentId, {
+      $set: { content: updatedContent }
+    })
+    res.locals.json = {
+      statusCode: 200,
+      data: { comment: comment }
+    }
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error.message
+    }
+  }
+  return next()
+}
+
+export const deleteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id } = res.locals
+  const commentId = req.params.commentId
   try {
     const comment = await Comment.findById(commentId)
     if (!(_id == comment.userId)) {
@@ -131,14 +178,10 @@ export const updateComment = async (
     return next()
   }
   try {
-    const comment = await Comment.findByIdAndUpdate(commentId, {
-      $set: req.body
-    })
+    const comment = await Comment.findByIdAndDelete(commentId)
     res.locals.json = {
       statusCode: 200,
-      data: {
-        comment: comment
-      }
+      message: 'Deleted Sucessfully'
     }
     return next()
   } catch (error) {

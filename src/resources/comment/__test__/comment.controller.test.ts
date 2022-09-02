@@ -5,6 +5,7 @@ import JWT from 'jsonwebtoken'
 import { app } from '../../../server'
 import { setUp, dropDatabase, dropCollections } from '../../../utils/db/connect'
 import { User } from '../../user/user.model'
+import { Comment } from '../comment.model'
 
 dotenv.config()
 
@@ -38,13 +39,14 @@ describe('Comment controller test', () => {
     let response: any
     try {
       response = await supertest(app)
-        .post('/api/v1/material')
+        .post('/api/v1/material/book')
         .field('type', 'Book')
         .field('title', 'knapsack')
-        .field('department', 'AI')
+        .field('department', 'SoftwareEngineering')
         .field('user', user._id.toString())
         .field('levelOfEducation', 'University')
         .field('course', 'AI')
+        .field('tags', ['physics'])
         .attach('book', 'src/resources/material/testFiles/knapsack.pdf')
     } catch (error) {
       console.log('error is' + error)
@@ -66,7 +68,7 @@ describe('Comment controller test', () => {
         .set('authorization', 'Bearer ' + token)
         .send(commentPrototype)
       expect(statusCode).toBe(201)
-      expect(body.data.content).toBe(commentPrototype.content)
+      expect(body.data.comment).toMatchObject(commentPrototype)
     })
     it('should return a 400 statusCode, given an invalid material id', async () => {
       const commentPrototype = {
@@ -80,7 +82,7 @@ describe('Comment controller test', () => {
       expect(statusCode).toBe(400)
       expect(body.message).toBeDefined()
     })
-    it('should return a 400 statusCode, given not givene content', async () => {
+    it('should return a 400 statusCode, if content field is missing', async () => {
       const commentPrototype = {
         materialId: material._id,
         userId: user._id
@@ -101,6 +103,71 @@ describe('Comment controller test', () => {
         .post('/api/v1/comment')
         .set('authorization', 'Bearer ' + token)
         .send(commentPrototype)
+      expect(statusCode).toBe(400)
+      expect(body.message).toBeDefined()
+    })
+  })
+  describe(' updateComment controller test', () => {
+    it('should return a 200 statusCode, and the updated comment given a valid input', async () => {
+      const oldComment = await Comment.create({
+        userId: user._id,
+        materialId: material._id,
+        content: 'old content'
+      })
+      const updatePrototype = {
+        content: 'This book is really good'
+      }
+      const { statusCode, body } = await supertest(app)
+        .patch(`/api/v1/comment/${oldComment._id}`)
+        .set('authorization', 'Bearer ' + token)
+        .send(updatePrototype)
+      expect(statusCode).toBe(200)
+      const updatedContent = await Comment.findById(oldComment._id)
+      expect(updatedContent).toMatchObject(updatePrototype)
+    })
+    it('should return a 400 statusCode, given an invalid material id', async () => {
+      const oldComment = await Comment.create({
+        userId: user._id,
+        materialId: material._id,
+        content: 'old content'
+      })
+      const updatePrototype = {
+        content: 'This book is really good'
+      }
+      const { statusCode, body } = await supertest(app)
+        .patch(`/api/v1/comment/${new mongoose.Types.ObjectId()}`)
+        .set('authorization', 'Bearer ' + token)
+        .send(updatePrototype)
+      expect(statusCode).toBe(400)
+      expect(body.message).toBeDefined()
+    })
+    it('should return a 400 statusCode, if the content field is missing', async () => {
+      const oldComment = await Comment.create({
+        userId: user._id,
+        materialId: material._id,
+        content: 'old content'
+      })
+      const updatePrototype = {}
+      const { statusCode, body } = await supertest(app)
+        .patch(`/api/v1/comment/${oldComment._id}`)
+        .set('authorization', 'Bearer ' + token)
+        .send(updatePrototype)
+      expect(statusCode).toBe(400)
+      expect(body.message).toBeDefined()
+    })
+    it('should return a 400 status code if given with an invalid content', async () => {
+      const oldComment = await Comment.create({
+        userId: user._id,
+        materialId: material._id,
+        content: 'old content'
+      })
+      const updatePrototype = {
+        content: ''
+      }
+      const { statusCode, body } = await supertest(app)
+        .patch(`/api/v1/comment/${oldComment._id}`)
+        .set('authorization', 'Bearer ' + token)
+        .send(updatePrototype)
       expect(statusCode).toBe(400)
       expect(body.message).toBeDefined()
     })

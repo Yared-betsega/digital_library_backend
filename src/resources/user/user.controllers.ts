@@ -5,10 +5,13 @@ import { OTP } from '../OTP/otp.model'
 import { generateToken } from '../../helpers/generateToken'
 import { v4 as uuidv4 } from 'uuid'
 import { userInfo } from 'os'
-import _, { range } from 'lodash'
+import _, { range, toInteger } from 'lodash'
 
 import { getMaterialsByUserId } from '../material/material.controllers'
 import { getUpvoteCountByMaterialId } from '../upvote/upvoteControllers'
+import { Material } from '../material/material.model'
+import materialRouter from '../material/material.router'
+import { Upvote } from '../upvote/upvote.model'
 export const fetchAllUsers = async (
   req: Request,
   res: Response,
@@ -212,6 +215,115 @@ export const topContributors = async (
     res.locals.json = {
       statusCode: 400,
       message: 'Cannot retrieve users'
+    }
+    return next()
+  }
+}
+export const myFavorites = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    let limit = toInteger(req.query.limit) || 10
+    let skip = toInteger(req.query.skip) || 1
+    const { _id } = res.locals
+
+    const temp = await User.find({ _id: _id }).select('upVotes')
+    const estimate = Object.keys(temp[0].upVotes).length
+    const user = await User.find({ _id: _id })
+      .select('upVotes')
+      .populate([
+        {
+          path: 'upVotes',
+          select: ' -__v',
+          options: {
+            limit: limit,
+            skip: (skip - 1) * limit
+          },
+          model: Upvote,
+          populate: {
+            path: 'materialId',
+            select: ' -__v',
+            populate: [
+              {
+                path: 'typeId',
+                select: ' -__v'
+              }
+            ]
+          }
+        }
+      ])
+    if (Object.keys(user[0].upVotes).length == 0) {
+      res.locals.json = {
+        statusCode: 400,
+        data: 'No data found'
+      }
+      return next()
+    }
+
+    res.locals.json = {
+      statusCode: 200,
+      data: user,
+      hasNext: Math.ceil(estimate / limit) >= skip + 1
+    }
+    return next()
+  } catch (err) {
+    console.log(err)
+    res.locals.json = {
+      statusCode: 400,
+      data: "problem occured fetching user's favorites"
+    }
+    return next()
+  }
+}
+
+export const myMaterials = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { _id } = res.locals
+    let limit = toInteger(req.query.limit) || 10
+    let skip = toInteger(req.query.skip) || 1
+    let type: string
+    if (req.query.type) type = req.query.type.toString()
+
+    const estimate: number = await Material.find({
+      user: _id,
+      type: type || { $ne: null }
+    }).count()
+    console.log(estimate)
+    const uploaded = await Material.find({
+      user: _id,
+      type: type || { $ne: null }
+    })
+      .populate({ path: 'typeId' })
+      .skip((skip - 1) * limit)
+      .limit(limit)
+      .select('-__v')
+
+    if (Object.keys(uploaded).length === 0) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'no data found'
+      }
+      return next()
+    }
+    res.locals.json = {
+      statusCode: 200,
+      data: {
+        materials: uploaded,
+        hasNext: Math.ceil(estimate / limit) >= skip + 1
+      }
+    }
+    return next()
+  } catch (error) {
+    console.log(error)
+    res.locals.json = {
+      statusCode: 400,
+      data: "problem occured fetching user's materials"
     }
     return next()
   }

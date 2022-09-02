@@ -13,6 +13,7 @@ const UpvoteSchema: Schema<IUpvoteInterface> = new mongoose.Schema({
 
   materialId: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'Material',
     required: true
   }
 })

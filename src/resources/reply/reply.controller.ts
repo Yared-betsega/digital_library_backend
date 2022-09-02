@@ -15,7 +15,7 @@ export const getAll = async (req, res, next) => {
 }
 export const getReply = async (req, res, next) => {
   try {
-    if (!isValidObjectId(req.params.id)) {
+    if (!mongoose.isValidObjectId(req.params.id)) {
       res.locals.json = {
         statusCode: 400,
         message: 'Invalid ID'
@@ -135,7 +135,7 @@ export async function updateReply(
   }
   try {
     let reply: any
-    if (!isValidObjectId(req.body.id)) {
+    if (!mongoose.isValidObjectId(req.body.id)) {
       res.locals.json = {
         statusCode: 400,
         message: 'Invalid ID'

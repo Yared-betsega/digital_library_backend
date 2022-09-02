@@ -8,6 +8,7 @@ import { uploadBook } from '../book/book.controllers'
 import { uploadVideo } from '../video/video.controllers'
 import { isValidObjectId } from 'mongoose'
 import { Tag } from '../tag/tag.model'
+import mongoose from 'mongoose'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -18,7 +19,7 @@ export const fetchMaterialById = async (
   next: NextFunction
 ) => {
   try {
-    if (!isValidObjectId(req.params.id)) {
+    if (!mongoose.isValidObjectId(req.params.id)) {
       res.locals.json = {
         statusCode: 400,
         message: 'Invalid ID'
@@ -114,7 +115,7 @@ export const recommend = async (
       .populate([
         {
           path: 'typeId',
-          select: ' -__v'
+          select: '-__v'
         },
         {
           path: 'user',
@@ -138,6 +139,7 @@ export const recommend = async (
     }
     return next()
   } catch (error) {
+    console.log(error)
     res.locals.json = {
       statusCode: 400,
       message: "couldn't fetch recommendation"
@@ -247,6 +249,7 @@ export const createBookMaterial = async (
       }
       return next()
     }
+    material.description = description || ''
     let { tags } = req.body
     if (typeof tags !== typeof []) {
       tags = [tags]
