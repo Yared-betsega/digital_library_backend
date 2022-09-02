@@ -17,7 +17,7 @@ import { extractTags } from '../../middlewares/extractTags'
 
 const materialRouter = Router()
 
-materialRouter.get('/popular', popular, respond)
+materialRouter.get('/popular', isAuthenticated, popular, respond)
 materialRouter.get('/recommend', isAuthenticated, recommend, respond)
 materialRouter.get('/filter', extractTags, filter, respond)
 materialRouter.get('/search', search, respond)

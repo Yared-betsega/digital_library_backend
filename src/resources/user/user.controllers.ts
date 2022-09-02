@@ -55,7 +55,8 @@ export const fetchUserById = async (
       'birthDate',
       'photoURL',
       'educationPlace',
-      'educationFieldOfStudy'
+      'educationFieldOfStudy',
+      'year'
     ])
   }
   return next()
@@ -86,38 +87,35 @@ export const updateUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.params.id !== res.locals.payload._id) {
-    console.log(res.locals)
+  try {
+    const { _id } = res.locals
+
+    if (req.body.email || req.body.password || req.body.phoneNumber) {
+      res.locals.json = {
+        statusCode: 403,
+        message: 'Forbidden action'
+      }
+      return next()
+    }
+    let user = await User.findByIdAndUpdate(_id, {
+      $set: req.body
+    })
+    await user.save()
+
+    const updatedUser = await User.findById(_id).select('-__v -password')
+
     res.locals.json = {
-      statusCode: 403,
-      message: 'You are not authorized to edit this account'
+      statusCode: 200,
+      data: updatedUser
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 500,
+      message: error.message
     }
     return next()
   }
-  if (req.body.email || req.body.password || req.body.phoneNumber) {
-    res.locals.json = {
-      statusCode: 403,
-      message: 'Forbidden action'
-    }
-    return next()
-  }
-  await User.findByIdAndUpdate(req.params.id, {
-    $set: req.body
-  })
-    .then((user) => {
-      res.locals.json = {
-        statusCode: 200,
-        date: _.pick(user, ['email', 'phoneNumber'])
-      }
-      return next()
-    })
-    .catch((err) => {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'Cannot update user'
-      }
-      return next()
-    })
 }
 
 export const deleteUser = async (
@@ -189,7 +187,6 @@ export const topContributors = async (
       }
       upVotes.push(upvote)
     }
-
     const Users = []
     for (let index = 0; index < 10; index++) {
       let userObj = {
@@ -249,18 +246,15 @@ export const myFavorites = async (
               {
                 path: 'typeId',
                 select: ' -__v'
+              },
+              {
+                path: 'user',
+                select: 'firstName lastName'
               }
             ]
           }
         }
       ])
-    if (Object.keys(user[0].upVotes).length == 0) {
-      res.locals.json = {
-        statusCode: 400,
-        data: 'No data found'
-      }
-      return next()
-    }
 
     res.locals.json = {
       statusCode: 200,
@@ -284,33 +278,26 @@ export const myMaterials = async (
   next: NextFunction
 ) => {
   try {
-    const { _id } = res.locals
+    const id = req.params.id
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
     let type: string
     if (req.query.type) type = req.query.type.toString()
 
     const estimate: number = await Material.find({
-      user: _id,
+      user: id,
       type: type || { $ne: null }
     }).count()
-    console.log(estimate)
+
     const uploaded = await Material.find({
-      user: _id,
+      user: id,
       type: type || { $ne: null }
     })
       .populate({ path: 'typeId' })
       .skip((skip - 1) * limit)
       .limit(limit)
-      .select('-__v')
+      .select('-user -__v')
 
-    if (Object.keys(uploaded).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
-    }
     res.locals.json = {
       statusCode: 200,
       data: {

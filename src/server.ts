@@ -11,13 +11,15 @@ import materialRouter from './resources/material/material.router'
 import { replyRouter } from './resources/reply/reply.router'
 import commentRouter from './resources/comment/comment.router'
 import courseRouter from './resources/course/course.router'
+import quizRouter from './resources/quiz/quiz.router'
+import { upvoteRouter } from './resources/upvote/upvote.router'
 
 export const app = express()
 
 app.disable('x-powered-by')
 
 app.use(cors())
-app.use(bodyParser.json())
+app.use(bodyParser.json({ limit: '50mb' }))
 
 app.use(urlencoded({ extended: true }))
 app.use(morgan('dev'))
@@ -31,6 +33,8 @@ app.use('/api/v1/material', materialRouter)
 app.use('/api/v1/comment', commentRouter)
 app.use('/api/v1/reply', replyRouter)
 app.use('/api/v1/course', courseRouter)
+app.use('/api/v1/quiz', quizRouter)
+app.use('/api/v1/upvote', upvoteRouter)
 app.use((req, res) => {
   res.json({ data: 'Hello World!' })
 })

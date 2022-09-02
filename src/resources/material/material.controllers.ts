@@ -9,6 +9,10 @@ import { uploadVideo } from '../video/video.controllers'
 import { isValidObjectId } from 'mongoose'
 import { Tag } from '../tag/tag.model'
 import mongoose from 'mongoose'
+import { Upvote } from '../upvote/upvote.model'
+import console from 'console'
+import { isUpvoted } from '../../helpers/isUpvoted'
+import { URLSearchParams } from 'url'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -73,6 +77,7 @@ export const recommend = async (
     const limit = toInteger(req.query.limit) || 10
     const skip = toInteger(req.query.skip) || 1
 
+    let year: number
     let educationFieldOfStudy: String
     let levelOfEducation: String
     let type: String
@@ -85,12 +90,8 @@ export const recommend = async (
 
     if (req.query.type) type = req.query.type.toString()
 
-    const { _id } = res.locals
-    const user = await User.findById(_id)
-    if (user) {
-      educationFieldOfStudy = user.educationFieldOfStudy
-      levelOfEducation = user.levelOfEducation
-    }
+    if (req.query.year) year = Number(req.query.year)
+
     const finder = {
       levelOfEducation: levelOfEducation || {
         $ne: null
@@ -100,14 +101,13 @@ export const recommend = async (
       },
       type: type || {
         $ne: null
+      },
+      year: year || {
+        $ne: null
       }
     }
 
-    const estimate = await Material.find({
-      levelOfEducation: levelOfEducation,
-      department: educationFieldOfStudy,
-      type: type
-    }).count()
+    const estimate = await Material.find(finder).count()
     const materials = await Material.find(finder)
       .skip((skip - 1) * limit)
       .limit(limit)
@@ -123,17 +123,15 @@ export const recommend = async (
         }
       ])
 
-    if (Object.keys(materials).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
+    const { _id } = res.locals
+    let final = null
+    if (_id) {
+      final = await isUpvoted(materials, _id)
     }
     res.locals.json = {
       statusCode: 200,
       data: {
-        materials: materials,
+        materials: final || materials,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
@@ -168,17 +166,16 @@ export async function popular(req: Request, res: Response, next: NextFunction) {
           select: 'firstName lastName phoneNumber email '
         }
       ])
-    if (Object.keys(materials).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
+
+    const { _id } = res.locals
+    let final = null
+    if (_id) {
+      final = await isUpvoted(materials, _id)
     }
     res.locals.json = {
       statusCode: 200,
       data: {
-        materials: materials,
+        materials: final || materials,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
@@ -220,9 +217,14 @@ export const createBookMaterial = async (
     }
     return next()
   }
+  let bookUrl = book.link
+  let spliced = bookUrl.split('.')
+  spliced.pop()
+  spliced.push('jpg')
+  let thumbnailGenerated = spliced.join('.')
   const {
     title,
-    thumbnail,
+    year,
     department,
     user,
     description,
@@ -233,13 +235,14 @@ export const createBookMaterial = async (
   try {
     const material = await Material.create({
       title,
-      thumbnail,
       department,
       user,
+      year,
       description,
       levelOfEducation,
       type,
       course,
+      thumbnail: thumbnailGenerated,
       typeId: book._id
     })
     if (!material) {
@@ -310,26 +313,33 @@ export const createVideoMaterial = async (
     }
     return next()
   }
+
+  const videoLink: string = video.link as string
+  const params = new URLSearchParams(videoLink)
+  const videoId: string = params.get('https://www.youtube.com/watch?v')
+  console.log(params)
+  const thumbnailGenerated: string = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
   const {
     title,
-    thumbnail,
     department,
     user,
     description,
     levelOfEducation,
     type,
+    year,
     course
   } = req.body
   try {
     const material = await Material.create({
       title,
-      thumbnail,
       department,
       user,
+      year,
       description,
       levelOfEducation,
       type,
       course,
+      thumbnail: thumbnailGenerated,
       typeId: video._id
     })
     if (!material) {
@@ -395,6 +405,7 @@ export const filter = async (
       materials = await Material.find({})
     }
     const response = paginator(materials, skip, limit)
+
     res.locals.json = {
       statusCode: 200,
       data: {
