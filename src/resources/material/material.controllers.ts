@@ -94,16 +94,16 @@ export const recommend = async (
 
     const finder = {
       levelOfEducation: levelOfEducation || {
-        $ne: null
+        $in: ['University', 'Highschool']
       },
       department: educationFieldOfStudy || {
-        $ne: null
+        $in: ['SoftwareEngineering', 'ElectricalEngineering']
       },
       type: type || {
-        $ne: null
+        $in: ['Book', 'Video', 'Notes', 'Quiz']
       },
       year: year || {
-        $ne: null
+        $in: [1, 2, 3, 4, 5]
       }
     }
 
@@ -481,13 +481,7 @@ export async function popularByType(
       .skip((skip - 1) * limit)
       .limit(limit)
       .select('-__v')
-    if (Object.keys(materials).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
-    }
+
     res.locals.json = {
       statusCode: 200,
       data: {

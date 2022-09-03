@@ -78,16 +78,9 @@ export const getComment = async (req, res, next: NextFunction) => {
         }
       ])
 
-    const estimate = await Reply.find({
+    const estimate = await Comment.find({
       materialId: materialId
     }).count()
-    if (Object.keys(comments).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
-    }
 
     res.locals.json = {
       statusCode: 200,
