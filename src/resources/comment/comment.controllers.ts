@@ -59,6 +59,7 @@ export const getComment = async (req, res, next: NextFunction) => {
 
     const materialId = req.params.materialId
     const comments = await Comment.find({ materialId: materialId })
+      .sort({ postDate: 'desc' })
       .skip((skip - 1) * limit)
       .limit(limit)
       .select('-__v')

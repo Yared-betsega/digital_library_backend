@@ -168,7 +168,7 @@ export const createQuiz = async (
   } catch (error) {
     res.locals.json = {
       statusCode: 400,
-      message: 'cannot create image'
+      message: error
     }
     return next()
   }

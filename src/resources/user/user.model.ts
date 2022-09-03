@@ -81,6 +81,8 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
 
   photoURL: {
     type: String,
+    default:
+      'https://res.cloudinary.com/digitallibrary/image/upload/v1662131476/defaults/profile_qrezuo.jpg',
     Required: false
   },
 

@@ -12,6 +12,7 @@ import { getUpvoteCountByMaterialId } from '../upvote/upvoteControllers'
 import { Material } from '../material/material.model'
 import materialRouter from '../material/material.router'
 import { Upvote } from '../upvote/upvote.model'
+import { uploadImage } from '../../helpers/uploadImage'
 export const fetchAllUsers = async (
   req: Request,
   res: Response,
@@ -83,7 +84,7 @@ export const fetchUserByEmail = async (
 }
 
 export const updateUser = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -100,6 +101,12 @@ export const updateUser = async (
     let user = await User.findByIdAndUpdate(_id, {
       $set: req.body
     })
+    if (req.file) {
+      const result = await uploadImage(req.file)
+      if (result) {
+        user.photoURL = result.data.secure_url
+      }
+    }
     await user.save()
 
     const updatedUser = await User.findById(_id).select('-__v -password')
