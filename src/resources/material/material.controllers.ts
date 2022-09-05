@@ -115,16 +115,16 @@ export const recommend = async (
 
     const finder = {
       levelOfEducation: levelOfEducation || {
-        $ne: null
+        $in: ['University', 'Highschool']
       },
       department: educationFieldOfStudy || {
-        $ne: null
+        $in: ['SoftwareEngineering', 'ElectricalEngineering']
       },
       type: type || {
-        $ne: null
+        $in: ['Book', 'Video', 'Notes', 'Quiz']
       },
       year: year || {
-        $ne: null
+        $in: [1, 2, 3, 4, 5]
       }
     }
 
@@ -446,6 +446,7 @@ export const createQuizMaterial = async (
     description,
     levelOfEducation,
     type,
+    year,
     course
   } = req.body
   try {
