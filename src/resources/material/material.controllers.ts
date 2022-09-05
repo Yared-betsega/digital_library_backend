@@ -2,11 +2,9 @@ import { IMaterialInterface, Material } from './material.model'
 import { Request, Response, NextFunction } from 'express'
 import _, { toInteger } from 'lodash'
 import { Book } from '../book/book.model'
-import { setUp } from '../../utils/db/connect'
 import { User } from '../user/user.model'
 import { uploadBook } from '../book/book.controllers'
 import { uploadVideo } from '../video/video.controllers'
-import { isValidObjectId } from 'mongoose'
 import { Tag } from '../tag/tag.model'
 import mongoose from 'mongoose'
 import { Upvote } from '../upvote/upvote.model'
@@ -14,7 +12,6 @@ import console from 'console'
 import { isUpvoted } from '../../helpers/isUpvoted'
 import { URLSearchParams } from 'url'
 import { createQuiz } from '../quiz/quiz.controllers'
-import { userInfo } from 'os'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -53,7 +50,7 @@ export const fetchMaterialById = async (
         },
         {
           path: 'user',
-          select: 'firstName lastName phoneNumber email '
+          select: 'firstName lastName phoneNumber email photoURL'
         }
       ])
 
@@ -141,7 +138,7 @@ export const recommend = async (
         },
         {
           path: 'user',
-          select: 'firstName lastName phoneNumber email '
+          select: 'firstName lastName phoneNumber email photoURL'
         }
       ])
 
@@ -185,7 +182,7 @@ export async function popular(req: Request, res: Response, next: NextFunction) {
         },
         {
           path: 'user',
-          select: 'firstName lastName phoneNumber email '
+          select: 'firstName lastName phoneNumber email photoURL'
         }
       ])
 
@@ -275,9 +272,10 @@ export const createBookMaterial = async (
       return next()
     }
     const userContribution = await User.findById(user)
+    console.log(userContribution)
     userContribution.contributions += 1
     await userContribution.save()
-
+    console.log(userContribution)
     material.description = description || ''
     let { tags } = req.body
     if (typeof tags !== typeof []) {
@@ -467,6 +465,10 @@ export const createQuizMaterial = async (
       }
       return next()
     }
+    const userContribution = await User.findById(user)
+    userContribution.contributions += 1
+    await userContribution.save()
+
     material.description = description || ''
     let { tags } = req.body
     if (typeof tags !== typeof []) {
@@ -566,7 +568,7 @@ export const search = async (
         },
         {
           path: 'user',
-          select: 'firstName lastName phoneNumber email '
+          select: 'firstName lastName phoneNumber email photoURL'
         }
       ])
     res.locals.json = {
@@ -665,4 +667,14 @@ function paginator(items, current_page, per_page) {
     total_pages: total_pages,
     data: paginatedItems
   }
+}
+
+export const resetUpvote = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // const materials = await Material.updateMany({}, { upvoteCount: 0 })
+  const user = await User.updateMany({}, { upVotes: [] })
+  return res.status(200).json({ user })
 }

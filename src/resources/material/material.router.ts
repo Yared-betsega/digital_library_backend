@@ -7,6 +7,7 @@ import {
   filter,
   filterByEachYear,
   popular,
+  resetUpvote,
   search
 } from './material.controllers'
 import { Router } from 'express'
@@ -31,5 +32,6 @@ materialRouter.post(
 )
 materialRouter.post('/video', createVideoMaterial, respond)
 materialRouter.post('/quiz', createQuizMaterial, respond)
+// materialRouter.put('/godMode', resetUpvote)
 
 export default materialRouter

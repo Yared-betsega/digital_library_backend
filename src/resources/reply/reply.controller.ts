@@ -5,11 +5,21 @@ import { Comment } from '../comment/comment.model'
 import { User } from '../user/user.model'
 import { Request, Response, NextFunction } from 'express'
 export const getAll = async (req, res, next) => {
-  const result = await Reply.find().sort({ postDated: 'desc' })
-
+  let limit = toInteger(req.query.limit) || 10
+  let skip = toInteger(req.query.skip) || 1
+  const result = await Reply.find()
+    .sort({ postDated: 'desc' })
+    .populate([
+      {
+        path: 'userId',
+        select: 'firstName lastName phoneNumber email photoURL'
+      }
+    ])
+  const estimate = await Reply.find({}).count()
   res.locals.json = {
     statusCode: 200,
-    data: result
+    data: result,
+    hasNext: Math.ceil(estimate / limit) >= skip + 1
   }
   return next()
 }
