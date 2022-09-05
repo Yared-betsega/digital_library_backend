@@ -36,15 +36,25 @@ export async function addComment(
       userId: user._id,
       content
     })
+    await comment.save()
+    const commentId = comment._id
+    const comments = await Comment.findById(commentId).populate([
+      {
+        path: 'userId',
+        select: 'firstName photoUrl'
+      }
+    ])
+
     if (!comment) {
       res.locals.json = {
         statusCode: 400,
         message: 'Unable to post comment'
       }
+      return next()
     } else {
       res.locals.json = {
         statusCode: 201,
-        data: { comment: comment }
+        data: { comment: comments }
       }
     }
     return next()
