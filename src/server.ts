@@ -1,5 +1,4 @@
 import express from 'express'
-import bodyParser from 'body-parser'
 import { json, urlencoded } from 'body-parser'
 import morgan from 'morgan'
 import config from './config'
@@ -19,9 +18,9 @@ export const app = express()
 app.disable('x-powered-by')
 
 app.use(cors())
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(json({ limit: '50mb' }))
 
-app.use(urlencoded({ extended: true }))
+app.use(urlencoded({ extended: true, limit: '50mb'}))
 app.use(morgan('dev'))
 
 // app.use('/', (req, res) => {
