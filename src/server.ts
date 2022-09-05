@@ -21,7 +21,7 @@ app.disable('x-powered-by')
 app.use(cors())
 app.use(bodyParser.json({ limit: '50mb' }))
 
-app.use(urlencoded({ extended: true }))
+app.use(urlencoded({ extended: true, limit: '50mb' }))
 app.use(morgan('dev'))
 
 // app.use('/', (req, res) => {

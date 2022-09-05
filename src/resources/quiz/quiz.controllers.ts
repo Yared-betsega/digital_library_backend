@@ -41,33 +41,26 @@ export const getSpecificQuiz = async (
     return next()
   }
 }
-export const createQuiz = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const createQuiz = async (req: Request) => {
   try {
     const {
-      quizName,
       duration,
       numberOfQuestions,
       instruction,
       questions,
       image64: quizImage
     } = req.body
-    if (!quizName || !duration || !numberOfQuestions) {
-      res.locals.json = {
+    if (!duration || !numberOfQuestions) {
+      return {
         statusCode: 400,
         message: 'Please enter all required fields'
       }
-      return next()
     }
     if (questions.length === 0) {
-      res.locals.json = {
+      return {
         statusCode: 400,
         message: 'Please enter at least one question'
       }
-      return next()
     }
     let createdQuestions = []
     for (let question of questions) {
@@ -76,31 +69,29 @@ export const createQuiz = async (
         answerIndex,
         index: questionIndex,
         choices,
+        explanation,
         image64: questionImage
       } = question
       if (text === null || answerIndex === null) {
-        res.locals.json = {
+        return {
           statusCode: 400,
           message: `please enter text and answerIndex for question ${questionIndex}`
         }
-        return next()
       }
       if (choices.length === 0) {
-        res.locals.json = {
+        return {
           statucCode: 400,
           message: `Please enter choices for question number ${questionIndex}`
         }
-        return next()
       }
       let createdChoices = []
       for (let choice of choices) {
         const { index: choiceIndex, text, image64: choiceImage } = choice
         if (choiceIndex === null || text === null) {
-          res.locals.json = {
+          return {
             statusCode: 400,
             message: `Please enter index and text for choice ${choiceIndex} of question ${questionIndex}`
           }
-          return next()
         }
         let choiceFilePath
         if (choiceImage) {
@@ -132,6 +123,7 @@ export const createQuiz = async (
         answerIndex: answerIndex,
         index: questionIndex,
         choices: createdChoices,
+        explanation: explanation,
         image64: questionFilePath
       })
       createdQuestions.push(questionCreated._id)
@@ -141,19 +133,18 @@ export const createQuiz = async (
       const parts = quizImage.split(',')
       const left = parts[0].split(';')[0]
       const extension = left.split('/')[1]
-      quizFilePath = `/quizImages/${Date.now()}_${quizName}.${extension}`
+      quizFilePath = `/quizImages/${Date.now()}.${extension}`
       let quizBuffer = Buffer.from(parts[1], 'base64')
       fs.writeFileSync(path.join(__dirname, quizFilePath), quizBuffer)
     }
     const quizCreated = await Quiz.create({
-      quizName: quizName,
       duration: duration,
       numberOfQuestions: numberOfQuestions,
       instruction: instruction,
       questions: createdQuestions,
       image64: quizFilePath
     })
-    res.locals.json = {
+    return {
       statusCode: 201,
       data: await quizCreated.populate({
         path: 'questions',
@@ -164,13 +155,11 @@ export const createQuiz = async (
         }
       })
     }
-    return next()
   } catch (error) {
-    res.locals.json = {
+    return {
       statusCode: 400,
       message: error
     }
-    return next()
   }
 }
 export const updateQuiz = async (

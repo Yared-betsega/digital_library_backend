@@ -6,6 +6,7 @@ interface IQuestionInterface {
   choices: [Object]
   answerIndex: Number
   image64: String
+  explanation: String
 }
 
 const QuestionSchema = new mongoose.Schema<IQuestionInterface>({
@@ -26,6 +27,9 @@ const QuestionSchema = new mongoose.Schema<IQuestionInterface>({
     type: Number
   },
   image64: {
+    type: String
+  },
+  explanation: {
     type: String
   }
 })

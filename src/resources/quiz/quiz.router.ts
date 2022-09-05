@@ -7,6 +7,5 @@ const quizRouter = express.Router()
 
 quizRouter.use('/image', getImage)
 quizRouter.get('/:id', getSpecificQuiz, respond)
-quizRouter.post('/', createQuiz, respond)
 
 export default quizRouter

@@ -22,17 +22,19 @@ export async function addComment(
       return next()
     }
     const material = await Material.findOne({ _id: materialId })
-    const comment = await Comment.create({
-      materialId,
-      userId: user._id,
-      content
-    })
+
     if (!material) {
       res.locals.json = {
         statusCode: 400,
         message: 'material does not exist'
       }
-    } else if (!comment) {
+    }
+    const comment = await Comment.create({
+      materialId,
+      userId: user._id,
+      content
+    })
+    if (!comment) {
       res.locals.json = {
         statusCode: 400,
         message: 'Unable to post comment'
