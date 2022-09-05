@@ -28,12 +28,9 @@ const QuestionSchema = new mongoose.Schema<IQuestionInterface>({
   },
   image64: {
     type: String
-<<<<<<< HEAD
   },
   explanation: {
     type: String
-=======
->>>>>>> 130c2dc8aa4981a930437d5be1453bf989cfa3f6
   }
 })
 

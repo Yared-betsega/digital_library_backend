@@ -322,3 +322,48 @@ export const myMaterials = async (
     return next()
   }
 }
+
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { userId } = req.params
+
+  try {
+    const user = await User.findById(userId)
+
+    if (!user) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'user not found'
+      }
+      return next()
+    }
+
+    res.locals.json = {
+      statusCode: 200,
+      data: _.pick(user, [
+        '_id',
+        'email',
+        'firstName',
+        'middleName',
+        'lastName',
+        'phoneNumber',
+        'bio',
+        'birthDate',
+        'photoURL',
+        'educationPlace',
+        'educationFieldOfStudy',
+        'year'
+      ])
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error.message
+    }
+    return next()
+  }
+}

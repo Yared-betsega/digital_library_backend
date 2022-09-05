@@ -8,7 +8,8 @@ import {
   fetchUserById,
   topContributors,
   myFavorites,
-  myMaterials
+  myMaterials,
+  getUserById
 } from './user.controllers'
 import { respond } from '../../middlewares/respond'
 import { verifyToken } from '../../middlewares/verifyToken'
@@ -30,4 +31,5 @@ userRouter.put(
 )
 userRouter.get('/', verifyToken, fetchUserById, respond)
 userRouter.get('/topContributors', topContributors)
+userRouter.get('/id/:userId', getUserById, respond)
 export = userRouter
