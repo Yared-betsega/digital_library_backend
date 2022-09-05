@@ -28,7 +28,9 @@ export async function addComment(
         statusCode: 400,
         message: 'material does not exist'
       }
+      return next()
     }
+
     const comment = await Comment.create({
       materialId,
       userId: user._id,

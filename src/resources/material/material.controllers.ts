@@ -468,6 +468,7 @@ export const createQuizMaterial = async (
     const userContribution = await User.findById(user)
     userContribution.contributions += 1
     await userContribution.save()
+
     material.description = description || ''
     let { tags } = req.body
     if (typeof tags !== typeof []) {
