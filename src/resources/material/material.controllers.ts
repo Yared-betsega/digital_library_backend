@@ -12,6 +12,8 @@ import console from 'console'
 import { isUpvoted } from '../../helpers/isUpvoted'
 import { URLSearchParams } from 'url'
 import { createQuiz } from '../quiz/quiz.controllers'
+import { Choice } from '../choice/choice.model'
+import { Question } from '../questions/question.model'
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -31,9 +33,29 @@ export const fetchMaterialById = async (
       return next()
     }
 
-    const material = await Material.findByIdAndUpdate(req.params.id, {
-      $inc: { viewCount: 1 }
-    })
+    let material1 = await Material.findOneAndUpdate(
+      { _id: req.params.id, type: { $ne: 'Quiz' } },
+      {
+        $inc: { viewCount: 1 }
+      }
+    )
+      .select('-__v')
+      .populate([
+        {
+          path: 'typeId',
+          select: ' -__v'
+        },
+        {
+          path: 'user',
+          select: 'firstName lastName phoneNumber email photoURL'
+        }
+      ])
+    let material2 = await Material.findOneAndUpdate(
+      { _id: req.params.id, type: { $eq: 'Quiz' } },
+      {
+        $inc: { viewCount: 1 }
+      }
+    )
       .select('-__v')
       .populate([
         {
@@ -41,10 +63,12 @@ export const fetchMaterialById = async (
           select: ' -__v',
           populate: {
             path: 'questions',
-            model: 'Question',
+            model: Question,
+            select: '-__v',
             populate: {
               path: 'choices',
-              model: 'Choice'
+              model: Choice,
+              select: '-__v'
             }
           }
         },
@@ -53,7 +77,7 @@ export const fetchMaterialById = async (
           select: 'firstName lastName phoneNumber email photoURL'
         }
       ])
-
+    const material = material1 || material2
     if (!material) {
       res.locals.json = {
         statusCode: 404,
@@ -466,8 +490,10 @@ export const createQuizMaterial = async (
       return next()
     }
     const userContribution = await User.findById(user)
-    userContribution.contributions += 1
-    await userContribution.save()
+    if (userContribution) {
+      userContribution.contributions += 1
+      await userContribution.save()
+    }
 
     material.description = description || ''
     let { tags } = req.body

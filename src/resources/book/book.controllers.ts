@@ -9,6 +9,7 @@ export const uploadBook = async (file: any) => {
       use_filename: true
     })
   } catch (error) {
+    console.log('cloudinary: ', error)
     return {
       statusCode: 400,
       message: 'cannot upload book'
