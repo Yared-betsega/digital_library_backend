@@ -36,13 +36,20 @@ export const signUpWithEmail = async (
     }
     return next()
   }
-
-  const newUser = await createUser(email, password, firstName, lastName)
-  res.locals.json = {
-    statusCode: 201,
-    data: newUser
+  try {
+    const newUser = await createUser(email, password, firstName, lastName)
+    res.locals.json = {
+      statusCode: 201,
+      data: newUser
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Error has occured'
+    }
+    return next()
   }
-  return next()
 }
 
 export const verifyEmail = async (
@@ -146,19 +153,20 @@ const createUser = async (
   firstName: String,
   lastName: String
 ) => {
-  const hashedPassword = await encrypt(password)
-  const OTPGenerated = generateOTP(6)
-  const newUser = await User.create({
-    email,
-    password: hashedPassword,
-    firstName,
-    lastName
-  })
-  const otp = await OTP.create({
-    email: email,
-    otpCode: OTPGenerated
-  })
   try {
+    const hashedPassword = await encrypt(password)
+    const OTPGenerated = generateOTP(6)
+    const newUser = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName
+    })
+    const otp = await OTP.create({
+      email: email,
+      otpCode: OTPGenerated
+    })
+
     const info = await sendMail({
       to: email,
       OTP: OTPGenerated,
@@ -166,22 +174,26 @@ const createUser = async (
     })
     return _.pick(newUser, ['email', 'firstName', 'lastName'])
   } catch (error) {
-    return false
+    throw new Error('Error has occured')
   }
 }
 
 const validateUser = async (email: String, otp: String) => {
-  const user = await User.findOne({ email })
-  if (!user) {
-    return false
-  }
-  const userOtp = await OTP.findOne({ email })
-  if (userOtp.otpCode !== otp) {
-    return false
-  }
+  try {
+    const user = await User.findOne({ email })
+    if (!user) {
+      return false
+    }
+    const userOtp = await OTP.findOne({ email })
+    if (userOtp.otpCode !== otp) {
+      return false
+    }
 
-  const updatedUser = await User.findByIdAndUpdate(user._id, {
-    $set: { isVerified: true }
-  })
-  return updatedUser
+    const updatedUser = await User.findByIdAndUpdate(user._id, {
+      $set: { isVerified: true }
+    })
+    return updatedUser
+  } catch (error) {
+    return false
+  }
 }

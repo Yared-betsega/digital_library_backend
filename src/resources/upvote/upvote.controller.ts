@@ -9,39 +9,60 @@ export const upvote = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { _id } = res.locals
-  const user = await User.findById(_id)
-  const materialId = req.params.id
+  try {
+    const { _id } = res.locals
+    const user = await User.findById(_id)
+    const materialId = req.params.id
 
-  if (!mongoose.isValidObjectId(materialId)) {
-    res.locals.json = {
-      statusCode: 400,
-      message: 'invalid material ID'
+    if (!mongoose.isValidObjectId(materialId)) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'invalid material ID'
+      }
+      return next()
     }
-    return next()
-  }
 
-  const material = await Material.findById(materialId)
-  if (!material) {
-    res.locals.json = {
-      statusCode: 404,
-      message: 'Material Does not exist'
+    const material = await Material.findById(materialId)
+
+    if (!material) {
+      res.locals.json = {
+        statusCode: 404,
+        message: 'Material Does not exist'
+      }
+      return next()
     }
-    return next()
-  }
 
-  const isUpvotedByUser = await Upvote.findOne(
-    { materialId: materialId },
-    { userId: _id }
-  )
+    const isUpvotedByUser = await Upvote.findOne(
+      { materialId: materialId },
+      { userId: _id }
+    )
 
-  const matId = new mongoose.Types.ObjectId(materialId)
+    const matId = new mongoose.Types.ObjectId(materialId)
 
-  if (isUpvotedByUser) {
-    const upvoteId = new mongoose.Types.ObjectId(isUpvotedByUser._id)
-    user.upVotes.splice(user.upVotes.indexOf(upvoteId), 1)
+    if (isUpvotedByUser) {
+      const upvoteId = new mongoose.Types.ObjectId(isUpvotedByUser._id)
+      user.upVotes.splice(user.upVotes.indexOf(upvoteId))
+      user.save()
+      material.upvoteCount -= 1
+      await material.save()
+      await isUpvotedByUser.delete()
+      res.locals.json = {
+        statusCode: 200,
+        data: {
+          upvoteCount: await getUpvoteCountByMaterialId(matId)
+        }
+      }
+      return next()
+    }
+
+    const newUpvote = await Upvote.create({
+      userId: _id,
+      materialId
+    })
+    material.upvoteCount += 1
+    await material.save()
+    user.upVotes.push(newUpvote._id)
     user.save()
-    await isUpvotedByUser.delete()
     res.locals.json = {
       statusCode: 200,
       data: {
@@ -49,20 +70,10 @@ export const upvote = async (
       }
     }
     return next()
-  }
-
-  const newUpvote = await Upvote.create({
-    userId: _id,
-    materialId
-  })
-
-  user.upVotes.push(newUpvote._id)
-  user.save()
-  res.locals.json = {
-    statusCode: 200,
-    data: {
-      upvoteCount: await getUpvoteCountByMaterialId(matId)
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: "couldn't upvote"
     }
   }
-  return next()
 }

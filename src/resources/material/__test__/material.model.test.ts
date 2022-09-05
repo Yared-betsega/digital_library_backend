@@ -11,7 +11,8 @@ const userData1 = {
   type: 'Book',
   typeId: new mongoose.Types.ObjectId(),
   viewCount: 2,
-  course: 'test course'
+  course: 'test course',
+  year: 2
 }
 const userData2 = {
   levelOfEducation: 'Wrong',
@@ -50,7 +51,8 @@ const userData6 = {
   upvoteCount: 20,
   type: 'Book',
   typeId: new mongoose.Types.ObjectId(),
-  viewCount: 2
+  viewCount: 2,
+  year: 3
 }
 
 const userData7 = {
@@ -60,7 +62,8 @@ const userData7 = {
   upvoteCount: 20,
   type: 'Book',
   typeId: new mongoose.Types.ObjectId(),
-  viewCount: 2
+  viewCount: 2,
+  year: 4
 }
 
 describe('Material Model', () => {

@@ -13,6 +13,7 @@ export interface IMaterialInterface {
   typeId: mongoose.Schema.Types.ObjectId
   viewCount: number
   course: string
+  isUpvoted: Boolean
   year: number
 }
 export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
@@ -70,7 +71,12 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
       required: false
     },
     year: {
-      type: Number
+      type: Number,
+      required: true
+    },
+    isUpvoted: {
+      type: Boolean,
+      default: false
     }
   },
   {

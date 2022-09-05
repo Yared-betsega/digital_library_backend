@@ -11,7 +11,7 @@ export interface IUserInterface {
   lastName: String
   birthDate: Date
   bio: String
-  contributions: Number
+  contributions: number
   upVotes: [mongoose.Types.ObjectId]
   // material is to be imported
   photoURL: String
@@ -81,6 +81,8 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
 
   photoURL: {
     type: String,
+    default:
+      'https://res.cloudinary.com/digitallibrary/image/upload/v1662131476/defaults/profile_qrezuo.jpg',
     Required: false
   },
 
@@ -91,7 +93,7 @@ const userSchema: Schema<IUserInterface> = new mongoose.Schema({
 
   educationFieldOfStudy: {
     type: String,
-    enum: ['SoftwareEnginnering', 'ElectricalEngineering']
+    enum: ['SoftwareEngineering', 'ElectricalEngineering']
   },
 
   levelOfEducation: {

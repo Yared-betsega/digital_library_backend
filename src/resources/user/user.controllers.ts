@@ -12,6 +12,7 @@ import { getUpvoteCountByMaterialId } from '../upvote/upvoteControllers'
 import { Material } from '../material/material.model'
 import materialRouter from '../material/material.router'
 import { Upvote } from '../upvote/upvote.model'
+import { uploadImage } from '../../helpers/uploadImage'
 export const fetchAllUsers = async (
   req: Request,
   res: Response,
@@ -55,7 +56,8 @@ export const fetchUserById = async (
       'birthDate',
       'photoURL',
       'educationPlace',
-      'educationFieldOfStudy'
+      'educationFieldOfStudy',
+      'year'
     ])
   }
   return next()
@@ -82,7 +84,7 @@ export const fetchUserByEmail = async (
 }
 
 export const updateUser = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -99,6 +101,13 @@ export const updateUser = async (
     let user = await User.findByIdAndUpdate(_id, {
       $set: req.body
     })
+    if (req.file) {
+      const result = await uploadImage(req.file)
+      if (result) {
+        user.photoURL = result.data.secure_url
+      }
+    }
+    await user.save()
 
     const updatedUser = await User.findById(_id).select('-__v -password')
 
@@ -185,7 +194,6 @@ export const topContributors = async (
       }
       upVotes.push(upvote)
     }
-
     const Users = []
     for (let index = 0; index < 10; index++) {
       let userObj = {
@@ -245,18 +253,15 @@ export const myFavorites = async (
               {
                 path: 'typeId',
                 select: ' -__v'
+              },
+              {
+                path: 'user',
+                select: 'firstName lastName'
               }
             ]
           }
         }
       ])
-    if (Object.keys(user[0].upVotes).length == 0) {
-      res.locals.json = {
-        statusCode: 400,
-        data: 'No data found'
-      }
-      return next()
-    }
 
     res.locals.json = {
       statusCode: 200,
@@ -290,7 +295,7 @@ export const myMaterials = async (
       user: id,
       type: type || { $ne: null }
     }).count()
-    console.log(estimate)
+
     const uploaded = await Material.find({
       user: id,
       type: type || { $ne: null }
@@ -298,15 +303,8 @@ export const myMaterials = async (
       .populate({ path: 'typeId' })
       .skip((skip - 1) * limit)
       .limit(limit)
-      .select('-__v')
+      .select('-user -__v')
 
-    if (Object.keys(uploaded).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
-    }
     res.locals.json = {
       statusCode: 200,
       data: {

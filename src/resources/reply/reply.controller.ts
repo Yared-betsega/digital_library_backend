@@ -5,7 +5,7 @@ import { Comment } from '../comment/comment.model'
 import { User } from '../user/user.model'
 import { Request, Response, NextFunction } from 'express'
 export const getAll = async (req, res, next) => {
-  const result = await Reply.find()
+  const result = await Reply.find().sort({ postDated: 'desc' })
 
   res.locals.json = {
     statusCode: 200,
@@ -29,6 +29,7 @@ export const getReply = async (req, res, next) => {
     const replies = await Reply.find({
       commentId: req.params.id
     })
+      .sort({ postDate: 'desc' })
       .populate([
         {
           path: 'userId',

@@ -22,17 +22,19 @@ export async function addComment(
       return next()
     }
     const material = await Material.findOne({ _id: materialId })
-    const comment = await Comment.create({
-      materialId,
-      userId: user._id,
-      content
-    })
+
     if (!material) {
       res.locals.json = {
         statusCode: 400,
         message: 'material does not exist'
       }
-    } else if (!comment) {
+    }
+    const comment = await Comment.create({
+      materialId,
+      userId: user._id,
+      content
+    })
+    if (!comment) {
       res.locals.json = {
         statusCode: 400,
         message: 'Unable to post comment'
@@ -59,6 +61,7 @@ export const getComment = async (req, res, next: NextFunction) => {
 
     const materialId = req.params.materialId
     const comments = await Comment.find({ materialId: materialId })
+      .sort({ postDate: 'desc' })
       .skip((skip - 1) * limit)
       .limit(limit)
       .select('-__v')
@@ -78,16 +81,9 @@ export const getComment = async (req, res, next: NextFunction) => {
         }
       ])
 
-    const estimate = await Reply.find({
+    const estimate = await Comment.find({
       materialId: materialId
     }).count()
-    if (Object.keys(comments).length === 0) {
-      res.locals.json = {
-        statusCode: 400,
-        message: 'no data found'
-      }
-      return next()
-    }
 
     res.locals.json = {
       statusCode: 200,
