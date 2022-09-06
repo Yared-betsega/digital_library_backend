@@ -91,6 +91,7 @@ export const fetchMaterialById = async (
         materialId: material._id,
         userId: _id
       })
+      // console.log(x)
       if (x.length > 0) {
         material.isUpvoted = true
       }
@@ -297,11 +298,11 @@ export const createBookMaterial = async (
       }
       return next()
     }
-    const userContribution = await User.findById(_id)
-
-    userContribution.contributions += 1
-    await userContribution.save()
-
+    const userContribution = await User.findById(user)
+    if (userContribution) {
+      userContribution.contributions += 1
+      await userContribution.save()
+    }
     material.description = description || ''
 
     res.locals.json = {
@@ -386,9 +387,6 @@ export const createVideoMaterial = async (
       thumbnail: thumbnailGenerated,
       typeId: video._id
     })
-    const userContribution = user
-    userContribution.contributions += 1
-    await userContribution.save()
     if (!material) {
       res.locals.json = {
         statusCode: 400,
@@ -396,6 +394,27 @@ export const createVideoMaterial = async (
       }
       return next()
     }
+    const userContribution = await User.findById(user)
+    if (userContribution) {
+      userContribution.contributions += 1
+      await userContribution.save()
+    }
+    let { tags } = req.body
+    if (typeof tags !== typeof []) {
+      tags = [tags]
+    }
+    tags.forEach(async (tagName) => {
+      let tag = await Tag.findOne({ name: tagName })
+
+      if (!tag) {
+        tag = await Tag.create({
+          name: tagName
+        })
+      }
+
+      tag.materials.push(material._id)
+      await tag.save()
+    })
 
     res.locals.json = {
       statusCode: 201,

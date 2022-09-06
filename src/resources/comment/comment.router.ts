@@ -14,7 +14,6 @@ const commentRouter = Router()
 commentRouter.post('/', verifyToken, addComment, respond)
 commentRouter.get('/getComments/:materialId', getComment, respond)
 commentRouter.patch('/:commentId', verifyToken, updateComment, respond)
-commentRouter.put('/:commentId', verifyToken, updateComment, respond)
 commentRouter.delete('/:commentId', verifyToken, deleteComment, respond)
 commentRouter.get('/:id', verifyToken, getCommentById, respond)
 

@@ -153,7 +153,12 @@ export const updateComment = async (
   try {
     const comment = await Comment.findByIdAndUpdate(commentId, {
       $set: { content: updatedContent }
-    })
+    }).populate([
+      {
+        path: 'userId',
+        select: 'firstName photoURL'
+      }
+    ])
     res.locals.json = {
       statusCode: 200,
       data: { comment: comment }
