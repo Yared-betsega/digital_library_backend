@@ -298,7 +298,7 @@ export const createBookMaterial = async (
       }
       return next()
     }
-    const userContribution = await User.findById(user)
+    const userContribution = await User.findById(_id)
     if (userContribution) {
       userContribution.contributions += 1
       await userContribution.save()
