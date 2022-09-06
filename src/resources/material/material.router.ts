@@ -22,7 +22,7 @@ const materialRouter = Router()
 
 materialRouter.get('/popular', isAuthenticated, popular, respond)
 materialRouter.get('/recommend', isAuthenticated, recommend, respond)
-materialRouter.get('/filter', extractTags, filter, respond)
+materialRouter.get('/filter', filter, respond)
 materialRouter.get('/search', search, respond)
 materialRouter.get('/courses', searchCourses, respond)
 materialRouter.get('/materialsForEachYear', filterByEachYear, respond)

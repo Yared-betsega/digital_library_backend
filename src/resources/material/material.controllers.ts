@@ -497,27 +497,21 @@ export const filter = async (
   next: NextFunction
 ) => {
   try {
-    const tags = res.locals.tags
+    let { type } = req.query
+    const course = req.query.course as [string]
+    console.log(course)
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
-    let materials = []
-    const added = new Set()
-    for (var key in tags) {
-      const tag = await Tag.findOne({ name: tags[key] }).populate('materials')
-      if (tag) {
-        tag.materials.forEach((material: any) => {
-          if (!added.has(material._id.toString())) {
-            added.add(material._id.toString())
-            materials.push(material)
-          }
-        })
+    const materials = await Material.find({ type: type })
+    const courseNames = new Set([...course])
+    console.log(courseNames)
+    let filtered = []
+    for (let material of materials) {
+      if (courseNames.has(material.course)) {
+        filtered.push(material)
       }
     }
-    if (materials.length == 0) {
-      materials = await Material.find({})
-    }
-    const response = paginator(materials, skip, limit)
-
+    const response = paginator(filtered, skip, limit)
     res.locals.json = {
       statusCode: 200,
       data: {

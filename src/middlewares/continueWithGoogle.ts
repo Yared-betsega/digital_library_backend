@@ -37,7 +37,7 @@ export const verifyGoogle = async (
     next()
   } catch (error) {
     res.status(400).json({
-      message: 'Something Went Wrong!',
+      message: 'No response from google',
       error: true
     })
   }
