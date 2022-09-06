@@ -29,6 +29,7 @@ materialRouter.get('/materialsForEachYear', filterByEachYear, respond)
 materialRouter.get('/:id', isAuthenticated, fetchMaterialById, respond)
 materialRouter.post(
   '/book',
+  verifyToken,
   filterBook.single('book'),
   createBookMaterial,
   respond

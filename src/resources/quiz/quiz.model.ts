@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 
 interface IQuizInterface {
+  quizName: String
   numberOfQuestions: Number
   instruction: String
   questions: [Object]
@@ -9,6 +10,10 @@ interface IQuizInterface {
 }
 
 const QuizSchema = new mongoose.Schema<IQuizInterface>({
+  quizName: {
+    type: String,
+    required: true
+  },
   numberOfQuestions: {
     type: Number,
     required: true

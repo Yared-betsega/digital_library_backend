@@ -14,6 +14,7 @@ import { URLSearchParams } from 'url'
 import { createQuiz } from '../quiz/quiz.controllers'
 import { Choice } from '../choice/choice.model'
 import { Question } from '../questions/question.model'
+
 export async function getMaterialsByUserId(userId) {
   return await Material.find({ userId: userId })
 }
@@ -118,7 +119,6 @@ export const recommend = async (
   try {
     const limit = toInteger(req.query.limit) || 10
     const skip = toInteger(req.query.skip) || 1
-
     let year: number
     let educationFieldOfStudy: String
     let levelOfEducation: String
@@ -245,6 +245,15 @@ export const createBookMaterial = async (
     return next()
   }
 
+  if (!req.body.tags || req.body.tags.length == 0) {
+    res.locals.json = {
+      statusCode: 400,
+      message: 'Please enter at least one tag'
+    }
+    return next()
+  }
+  const { _id } = res.locals
+
   const bookUploadResult = await uploadBook(req.file)
   const { statusCode, data: book } = bookUploadResult
   if (statusCode == 400) {
@@ -263,7 +272,6 @@ export const createBookMaterial = async (
     title,
     year,
     department,
-    user,
     description,
     levelOfEducation,
     type,
@@ -273,7 +281,7 @@ export const createBookMaterial = async (
     const material = await Material.create({
       title,
       department,
-      user,
+      user: _id,
       year,
       description,
       levelOfEducation,
@@ -289,11 +297,11 @@ export const createBookMaterial = async (
       }
       return next()
     }
-    const userContribution = await User.findById(user)
-    console.log(userContribution)
+    const userContribution = await User.findById(_id)
+
     userContribution.contributions += 1
     await userContribution.save()
-    console.log(userContribution)
+
     material.description = description || ''
 
     res.locals.json = {
@@ -305,7 +313,7 @@ export const createBookMaterial = async (
     console.log(error)
     res.locals.json = {
       statusCode: 400,
-      message: error
+      message: error.message
     }
     return next()
   }

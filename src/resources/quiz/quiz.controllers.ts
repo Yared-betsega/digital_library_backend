@@ -44,6 +44,7 @@ export const getSpecificQuiz = async (
 export const createQuiz = async (req: Request) => {
   try {
     const {
+      title,
       duration,
       numberOfQuestions,
       instruction,
@@ -138,6 +139,7 @@ export const createQuiz = async (req: Request) => {
       fs.writeFileSync(path.join(__dirname, quizFilePath), quizBuffer)
     }
     const quizCreated = await Quiz.create({
+      quizName: title,
       duration: duration,
       numberOfQuestions: numberOfQuestions,
       instruction: instruction,
