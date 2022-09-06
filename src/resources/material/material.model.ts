@@ -68,7 +68,7 @@ export const MaterialSchema = new mongoose.Schema<IMaterialInterface>(
     },
     course: {
       type: String,
-      required: false
+      required: true
     },
     year: {
       type: Number,

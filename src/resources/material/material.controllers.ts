@@ -244,13 +244,7 @@ export const createBookMaterial = async (
     }
     return next()
   }
-  if (!req.body.tags || req.body.tags.length == 0) {
-    res.locals.json = {
-      statusCode: 400,
-      message: 'Please enter at least one tag'
-    }
-    return next()
-  }
+
   const bookUploadResult = await uploadBook(req.file)
   const { statusCode, data: book } = bookUploadResult
   if (statusCode == 400) {
@@ -301,22 +295,6 @@ export const createBookMaterial = async (
     await userContribution.save()
     console.log(userContribution)
     material.description = description || ''
-    let { tags } = req.body
-    if (typeof tags !== typeof []) {
-      tags = [tags]
-    }
-    tags.forEach(async (tagName) => {
-      let tag = await Tag.findOne({ name: tagName })
-
-      if (!tag) {
-        tag = await Tag.create({
-          name: tagName
-        })
-      }
-
-      tag.materials.push(material._id)
-      await tag.save()
-    })
 
     res.locals.json = {
       statusCode: 201,
@@ -338,7 +316,24 @@ export const createVideoMaterial = async (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(req.body)
+  const { _id } = res.locals
+  let user: any
+  try {
+    user = await User.findById(_id)
+    if (!user) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'User does not exist'
+      }
+      next()
+    }
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error.message
+    }
+    next()
+  }
   if (!req.body) {
     res.locals.json = {
       statusCode: 400,
@@ -346,13 +341,7 @@ export const createVideoMaterial = async (
     }
     return next()
   }
-  if (!req.body.tags || req.body.tags.length == 0) {
-    res.locals.json = {
-      statusCode: 400,
-      message: 'Please enter at least one tag'
-    }
-    return next()
-  }
+
   const videoUploadResult = await uploadVideo(req.body.link)
   const { statusCode, data: video } = videoUploadResult
   if (statusCode == 400) {
@@ -366,12 +355,10 @@ export const createVideoMaterial = async (
   const videoLink: string = video.link as string
   const params = new URLSearchParams(videoLink)
   const videoId: string = params.get('https://www.youtube.com/watch?v')
-  console.log(params)
   const thumbnailGenerated: string = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
   const {
     title,
     department,
-    user,
     description,
     levelOfEducation,
     type,
@@ -382,7 +369,7 @@ export const createVideoMaterial = async (
     const material = await Material.create({
       title,
       department,
-      user,
+      user: _id,
       year,
       description,
       levelOfEducation,
@@ -391,7 +378,7 @@ export const createVideoMaterial = async (
       thumbnail: thumbnailGenerated,
       typeId: video._id
     })
-    const userContribution = await User.findById(user)
+    const userContribution = user
     userContribution.contributions += 1
     await userContribution.save()
     if (!material) {
@@ -401,22 +388,6 @@ export const createVideoMaterial = async (
       }
       return next()
     }
-    let { tags } = req.body
-    if (typeof tags !== typeof []) {
-      tags = [tags]
-    }
-    tags.forEach(async (tagName) => {
-      let tag = await Tag.findOne({ name: tagName })
-
-      if (!tag) {
-        tag = await Tag.create({
-          name: tagName
-        })
-      }
-
-      tag.materials.push(material._id)
-      await tag.save()
-    })
 
     res.locals.json = {
       statusCode: 201,
@@ -426,7 +397,7 @@ export const createVideoMaterial = async (
   } catch (error) {
     res.locals.json = {
       statusCode: 400,
-      message: error
+      message: error.message
     }
     return next()
   }
@@ -436,13 +407,24 @@ export const createQuizMaterial = async (
   res: Response,
   next: NextFunction
 ) => {
-  // if (!req.file) {
-  //   res.locals.json = {
-  //     statusCode: 400,
-  //     message: 'Please upload book'
-  //   }
-  //   return next()
-  // }
+  const { _id } = res.locals
+  let user: any
+  try {
+    user = await User.findById(_id)
+    if (!user) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'User does not exist'
+      }
+      next()
+    }
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 400,
+      message: error.message
+    }
+    next()
+  }
   if (!req.body.tags || req.body.tags.length == 0) {
     res.locals.json = {
       statusCode: 400,
@@ -464,7 +446,6 @@ export const createQuizMaterial = async (
     title,
     year,
     department,
-    user,
     description,
     levelOfEducation,
     type,
@@ -474,7 +455,7 @@ export const createQuizMaterial = async (
     const material = await Material.create({
       title,
       department,
-      user,
+      user: _id,
       year,
       description,
       levelOfEducation,
@@ -496,22 +477,6 @@ export const createQuizMaterial = async (
     }
 
     material.description = description || ''
-    let { tags } = req.body
-    if (typeof tags !== typeof []) {
-      tags = [tags]
-    }
-    tags.forEach(async (tagName) => {
-      let tag = await Tag.findOne({ name: tagName })
-
-      if (!tag) {
-        tag = await Tag.create({
-          name: tagName
-        })
-      }
-
-      tag.materials.push(material._id)
-      await tag.save()
-    })
 
     res.locals.json = {
       statusCode: 201,
@@ -579,7 +544,9 @@ export const search = async (
     const keyword = req.query.keyword || ''
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
-    const estimate = await Material.estimatedDocumentCount()
+    const estimate = await Material.find({
+      title: { $regex: `${keyword}`, $options: 'i' }
+    }).count()
     const materials = await Material.find({
       title: { $regex: `${keyword}`, $options: 'i' }
     })
@@ -681,6 +648,43 @@ export const filterByEachYear = async (
   }
 }
 
+export const resetUpvote = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // const materials = await Material.updateMany({}, { upvoteCount: 0 })
+  const user = await User.updateMany({}, { upVotes: [] })
+  return res.status(200).json({ user })
+}
+export const searchCourses = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { keyword } = req.query
+  let materials
+  if (!keyword) {
+    materials = await Material.find({})
+  } else {
+    materials = await Material.find({
+      course: { $regex: `${keyword}`, $options: 'i' }
+    })
+  }
+  let response = new Set()
+  for (let material of materials) {
+    if (material.course != null) {
+      response.add(material.course)
+    }
+  }
+  console.log(response)
+  res.locals.json = {
+    statusCode: 200,
+    data: [...response]
+  }
+  return next()
+}
+
 function paginator(items, current_page, per_page) {
   let offset = (current_page - 1) * per_page,
     paginatedItems = items.slice(offset).slice(0, per_page),
@@ -693,14 +697,4 @@ function paginator(items, current_page, per_page) {
     total_pages: total_pages,
     data: paginatedItems
   }
-}
-
-export const resetUpvote = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  // const materials = await Material.updateMany({}, { upvoteCount: 0 })
-  const user = await User.updateMany({}, { upVotes: [] })
-  return res.status(200).json({ user })
 }

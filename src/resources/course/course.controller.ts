@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Course } from '../course/course.model'
+import { courses } from './courseList'
 export const getCourse = async (
   req: Request,
   res: Response,
@@ -73,4 +74,16 @@ export const addCourse = async (
     }
     return next()
   }
+}
+
+export const addCourses = async (req: Request, res: Response) => {
+  for (let course of courses) {
+    // console.log(course)
+    await Course.create({
+      courseName: course.courseName,
+      year: course.year,
+      department: course.department
+    })
+  }
+  return res.status(200).send('Courses created!')
 }

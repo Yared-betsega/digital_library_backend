@@ -1,6 +1,12 @@
 import { Router } from 'express'
 import { respond } from '../../middlewares/respond'
-import { addComment, getComment, updateComment, deleteComment } from './comment.controllers'
+import {
+  addComment,
+  getComment,
+  updateComment,
+  deleteComment,
+  getCommentById
+} from './comment.controllers'
 import { verifyToken } from '../../middlewares/verifyToken'
 
 const commentRouter = Router()
@@ -10,5 +16,6 @@ commentRouter.get('/getComments/:materialId', getComment, respond)
 commentRouter.patch('/:commentId', verifyToken, updateComment, respond)
 commentRouter.put('/:commentId', verifyToken, updateComment, respond)
 commentRouter.delete('/:commentId', verifyToken, deleteComment, respond)
+commentRouter.get('/:id', verifyToken, getCommentById, respond)
 
 export default commentRouter
