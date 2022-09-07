@@ -32,10 +32,10 @@ export const upvote = async (
       return next()
     }
 
-    const isUpvotedByUser = await Upvote.findOne(
-      { materialId: materialId },
-      { userId: _id }
-    )
+    const isUpvotedByUser = await Upvote.findOne({
+      materialId: materialId,
+      userId: _id
+    })
 
     const matId = new mongoose.Types.ObjectId(materialId)
 
