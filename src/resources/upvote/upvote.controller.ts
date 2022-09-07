@@ -75,5 +75,6 @@ export const upvote = async (
       statusCode: 400,
       message: "couldn't upvote"
     }
+    return next()
   }
 }
