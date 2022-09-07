@@ -257,7 +257,7 @@ export const myFavorites = async (
               },
               {
                 path: 'user',
-                select: 'firstName lastName'
+                select: 'firstName lastName photoURL'
               }
             ]
           }
