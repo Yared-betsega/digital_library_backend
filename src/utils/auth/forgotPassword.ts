@@ -13,11 +13,8 @@ export const forgotPassword = async (
   if (!req.body.email) {
     return next()
   }
-
   const user = await User.find({ email: email })
-  console.log(email, user)
   if (!user) {
-    console.log('he')
     res.locals.json = {
       statusCode: 404,
       message: 'User Not found'

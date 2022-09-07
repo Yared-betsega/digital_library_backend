@@ -99,6 +99,18 @@ export const updateUser = async (
       }
       return next()
     }
+    if (
+      req.body.department &&
+      req.body.department !== 'SoftwareEngineering' &&
+      req.body.department !== 'ElectricalEngineering'
+    ) {
+      res.locals.json = {
+        statusCode: 400,
+        message:
+          'Field should be a valid type of enum [SoftwareEngineering, ElectricalEngineering]'
+      }
+      return next()
+    }
     let user = await User.findByIdAndUpdate(_id, {
       $set: req.body
     })

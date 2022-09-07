@@ -748,3 +748,12 @@ function paginator(items, current_page, per_page) {
     data: paginatedItems
   }
 }
+
+export const resetUpvoteCount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const materials = await Material.updateMany({}, { upvoteCount: 0 })
+  return res.status(200).json({ materials })
+}

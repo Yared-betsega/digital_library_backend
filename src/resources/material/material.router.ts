@@ -8,6 +8,7 @@ import {
   filterByEachYear,
   popular,
   resetUpvote,
+  resetUpvoteCount,
   search,
   searchCourses
 } from './material.controllers'
@@ -37,5 +38,6 @@ materialRouter.post(
 materialRouter.post('/video', verifyToken, createVideoMaterial, respond)
 materialRouter.post('/quiz', verifyToken, createQuizMaterial, respond)
 // materialRouter.put('/godMode', resetUpvote)
+// materialRouter.put('/godMode', resetUpvoteCount)
 
 export default materialRouter
