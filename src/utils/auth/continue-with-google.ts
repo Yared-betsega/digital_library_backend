@@ -22,7 +22,7 @@ export const continueWithGoogle = async (
     //Account already exists
     if (userAlreadyExisted) {
       const token: String = generateToken(userAlreadyExisted)
-      res.locals = {
+      res.locals.json = {
         statusCode: 200,
         data: {
           token: token
@@ -45,7 +45,7 @@ export const continueWithGoogle = async (
     })
     //Respond with a token
     const token: String = generateToken(newUser)
-    res.locals = {
+    res.locals.json = {
       statusCode: 200,
       data: {
         email: email,
@@ -54,7 +54,7 @@ export const continueWithGoogle = async (
     }
     return next()
   } catch (error) {
-    res.locals = {
+    res.locals.json = {
       statusCode: 400,
       message: 'Google Signin Failed'
     }

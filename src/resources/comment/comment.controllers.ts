@@ -4,6 +4,7 @@ import { User } from '../user/user.model'
 import { Material } from '../material/material.model'
 import { toInteger } from 'lodash'
 import { Reply } from '../reply/reply.model'
+import mongoose from 'mongoose'
 
 export async function addComment(
   req: Request,
@@ -36,15 +37,25 @@ export async function addComment(
       userId: user._id,
       content
     })
+    await comment.save()
+    const commentId = comment._id
+    const comments = await Comment.findById(commentId).populate([
+      {
+        path: 'userId',
+        select: 'firstName photoURL'
+      }
+    ])
+
     if (!comment) {
       res.locals.json = {
         statusCode: 400,
         message: 'Unable to post comment'
       }
+      return next()
     } else {
       res.locals.json = {
         statusCode: 201,
-        data: { comment: comment }
+        data: { comment: comments }
       }
     }
     return next()
@@ -56,7 +67,11 @@ export async function addComment(
   }
   return next()
 }
-export const getComment = async (req, res, next: NextFunction) => {
+export const getComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
@@ -70,14 +85,14 @@ export const getComment = async (req, res, next: NextFunction) => {
       .populate([
         {
           path: 'userId',
-          select: 'firstName photoUrl'
+          select: 'firstName lastName photoURL'
         },
         {
           path: 'replies',
           model: Reply,
           populate: {
             path: 'userId',
-            select: 'firstName photoUrl'
+            select: 'firstName lastName photoURL'
           },
           select: '-__v'
         }
@@ -138,7 +153,12 @@ export const updateComment = async (
   try {
     const comment = await Comment.findByIdAndUpdate(commentId, {
       $set: { content: updatedContent }
-    })
+    }).populate([
+      {
+        path: 'userId',
+        select: 'firstName photoURL'
+      }
+    ])
     res.locals.json = {
       statusCode: 200,
       data: { comment: comment }
@@ -188,5 +208,40 @@ export const deleteComment = async (
       message: 'Bad request'
     }
     return next()
+  }
+}
+
+export const getCommentById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      res.locals.json = {
+        statusCode: 400,
+        message: 'invalid ID'
+      }
+      return next()
+    }
+
+    const comment = await Comment.findById(req.params.id)
+    if (!comment) {
+      res.locals.json = {
+        statusCode: 404,
+        message: 'comment not found'
+      }
+      return next()
+    }
+    res.locals.json = {
+      statusCode: 200,
+      data: comment
+    }
+    return next()
+  } catch (error) {
+    res.locals.json = {
+      statusCode: 500,
+      message: 'Server failed'
+    }
   }
 }
