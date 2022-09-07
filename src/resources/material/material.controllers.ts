@@ -176,6 +176,7 @@ export const recommend = async (
       statusCode: 200,
       data: {
         materials: final || materials,
+        total: estimate,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
@@ -220,6 +221,7 @@ export async function popular(req: Request, res: Response, next: NextFunction) {
       statusCode: 200,
       data: {
         materials: final || materials,
+        total: estimate,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
@@ -246,13 +248,6 @@ export const createBookMaterial = async (
     return next()
   }
 
-  if (!req.body.tags || req.body.tags.length == 0) {
-    res.locals.json = {
-      statusCode: 400,
-      message: 'Please enter at least one tag'
-    }
-    return next()
-  }
   const { _id } = res.locals
 
   const bookUploadResult = await uploadBook(req.file)
@@ -399,22 +394,6 @@ export const createVideoMaterial = async (
       userContribution.contributions += 1
       await userContribution.save()
     }
-    let { tags } = req.body
-    if (typeof tags !== typeof []) {
-      tags = [tags]
-    }
-    tags.forEach(async (tagName) => {
-      let tag = await Tag.findOne({ name: tagName })
-
-      if (!tag) {
-        tag = await Tag.create({
-          name: tagName
-        })
-      }
-
-      tag.materials.push(material._id)
-      await tag.save()
-    })
 
     res.locals.json = {
       statusCode: 201,
@@ -452,13 +431,7 @@ export const createQuizMaterial = async (
     }
     next()
   }
-  if (!req.body.tags || req.body.tags.length == 0) {
-    res.locals.json = {
-      statusCode: 400,
-      message: 'Please enter at least one tag'
-    }
-    return next()
-  }
+
   const quizCreationResult = await createQuiz(req)
   const { statusCode, data: quiz } = quizCreationResult
   if (statusCode == 400) {
@@ -573,7 +546,6 @@ export const filter = async (
       }
 
       const courseNames = new Set([...course])
-      console.log(courseNames)
 
       for (let material of materials) {
         if (courseNames.has(material.course)) {
@@ -585,6 +557,7 @@ export const filter = async (
         statusCode: 200,
         data: {
           materials: response.data,
+          total: response.total,
           hasNext: Math.ceil(response.total / limit) >= skip + 1
         }
       }
@@ -596,6 +569,7 @@ export const filter = async (
       statusCode: 200,
       data: {
         materials: response.data,
+        total: response.total,
         hasNext: Math.ceil(response.total / limit) >= skip + 1
       }
     }
@@ -642,6 +616,7 @@ export const search = async (
       statusCode: 200,
       data: {
         materials: materials,
+        total: estimate,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
@@ -677,6 +652,7 @@ export async function popularByType(
       statusCode: 200,
       data: {
         materials: materials,
+        total: estimate,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
