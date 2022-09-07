@@ -42,7 +42,7 @@ export const upvote = async (
     if (isUpvotedByUser) {
       const upvoteId = new mongoose.Types.ObjectId(isUpvotedByUser._id)
       user.upVotes.splice(user.upVotes.indexOf(upvoteId))
-      user.save()
+      await user.save()
       material.upvoteCount -= 1
       await material.save()
       await isUpvotedByUser.delete()
@@ -62,7 +62,7 @@ export const upvote = async (
     material.upvoteCount += 1
     await material.save()
     user.upVotes.push(newUpvote._id)
-    user.save()
+    await user.save()
     res.locals.json = {
       statusCode: 200,
       data: {
