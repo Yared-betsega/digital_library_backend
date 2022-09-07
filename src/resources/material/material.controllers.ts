@@ -524,21 +524,74 @@ export const filter = async (
   next: NextFunction
 ) => {
   try {
-    let { type } = req.query
-    const course = req.query.course as [string]
-    console.log(course)
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
-    const materials = await Material.find({ type: type })
-    const courseNames = new Set([...course])
-    console.log(courseNames)
-    let filtered = []
-    for (let material of materials) {
-      if (courseNames.has(material.course)) {
-        filtered.push(material)
+    let year: number
+    let educationFieldOfStudy: String
+    let type: String
+
+    if (req.query.department)
+      educationFieldOfStudy = req.query.department.toString()
+
+    if (req.query.type) type = req.query.type.toString()
+
+    if (req.query.year) year = Number(req.query.year)
+
+    const finder = {
+      department: educationFieldOfStudy || {
+        $ne: null
+      },
+      type: type || {
+        $ne: null
+      },
+      year: year || {
+        $ne: null
       }
     }
-    const response = paginator(filtered, skip, limit)
+
+    const materials = await Material.find(finder)
+      .sort({ postDate: 'desc' })
+      .skip((skip - 1) * limit)
+      .limit(limit)
+      .select('-__v')
+      .populate([
+        {
+          path: 'typeId',
+          select: '-__v'
+        },
+        {
+          path: 'user',
+          select: 'firstName lastName phoneNumber email photoURL'
+        }
+      ])
+
+    let filtered = []
+    if (req.query.course) {
+      let course = req.query.course as [string]
+      if (typeof course === typeof '') {
+        course = [course as unknown as string]
+      }
+
+      const courseNames = new Set([...course])
+      console.log(courseNames)
+
+      for (let material of materials) {
+        if (courseNames.has(material.course)) {
+          filtered.push(material)
+        }
+      }
+      const response = paginator(filtered, skip, limit)
+      res.locals.json = {
+        statusCode: 200,
+        data: {
+          materials: response.data,
+          hasNext: Math.ceil(response.total / limit) >= skip + 1
+        }
+      }
+      return next()
+    }
+
+    const response = paginator(materials, skip, limit)
     res.locals.json = {
       statusCode: 200,
       data: {
@@ -718,14 +771,4 @@ function paginator(items, current_page, per_page) {
     total_pages: total_pages,
     data: paginatedItems
   }
-}
-
-export const resetUpvote = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  // const materials = await Material.updateMany({}, { upvoteCount: 0 })
-  const user = await User.updateMany({}, { upVotes: [] })
-  return res.status(200).json({ user })
 }
