@@ -299,10 +299,11 @@ export const myMaterials = async (
       user: id,
       type: type || { $ne: null }
     })
+      .populate({ path: 'user' })
       .populate({ path: 'typeId' })
       .skip((skip - 1) * limit)
       .limit(limit)
-      .select('-user -__v')
+      .select('-__v')
 
     let final = null
     if (id) {
