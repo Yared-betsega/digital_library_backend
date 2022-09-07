@@ -297,6 +297,7 @@ export const myMaterials = async (
 ) => {
   try {
     const id = req.params.id
+    const { _id } = res.locals
     let limit = toInteger(req.query.limit) || 10
     let skip = toInteger(req.query.skip) || 1
     let type: string
@@ -319,7 +320,7 @@ export const myMaterials = async (
 
     let final = null
     if (id) {
-      final = await isUpvoted(uploaded, id)
+      final = await isUpvoted(uploaded, _id || id)
     }
     res.locals.json = {
       statusCode: 200,
