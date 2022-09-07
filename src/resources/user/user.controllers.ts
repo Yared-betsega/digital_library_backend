@@ -319,8 +319,8 @@ export const myMaterials = async (
       .select('-__v')
 
     let final = null
-    if (id) {
-      final = await isUpvoted(uploaded, _id || id)
+    if (_id) {
+      final = await isUpvoted(uploaded, _id)
     }
     res.locals.json = {
       statusCode: 200,
