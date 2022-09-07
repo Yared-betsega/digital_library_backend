@@ -13,6 +13,7 @@ import { Material } from '../material/material.model'
 import materialRouter from '../material/material.router'
 import { Upvote } from '../upvote/upvote.model'
 import { uploadImage } from '../../helpers/uploadImage'
+import { isUpvoted } from '../../helpers/isUpvoted'
 export const fetchAllUsers = async (
   req: Request,
   res: Response,
@@ -31,9 +32,8 @@ export const fetchUserById = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { _id } = res.locals
-
-  const user = await User.findById(_id)
+  const { id } = res.locals
+  const user = await User.findById(id)
 
   if (!user) {
     res.locals.json = {
@@ -262,7 +262,6 @@ export const myFavorites = async (
           }
         }
       ])
-
     res.locals.json = {
       statusCode: 200,
       data: user,
@@ -270,7 +269,6 @@ export const myFavorites = async (
     }
     return next()
   } catch (err) {
-    console.log(err)
     res.locals.json = {
       statusCode: 400,
       data: "problem occured fetching user's favorites"
@@ -305,10 +303,14 @@ export const myMaterials = async (
       .limit(limit)
       .select('-__v')
 
+    let final = null
+    if (id) {
+      final = await isUpvoted(uploaded, id)
+    }
     res.locals.json = {
       statusCode: 200,
       data: {
-        materials: uploaded,
+        materials: final || uploaded,
         hasNext: Math.ceil(estimate / limit) >= skip + 1
       }
     }
