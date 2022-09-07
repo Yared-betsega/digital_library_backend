@@ -303,7 +303,7 @@ export const myMaterials = async (
       .populate({ path: 'typeId' })
       .skip((skip - 1) * limit)
       .limit(limit)
-      .select('-user -__v')
+      .select('-__v')
 
     res.locals.json = {
       statusCode: 200,
