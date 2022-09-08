@@ -13,6 +13,7 @@ import { verifyToken } from '../../middlewares/verifyToken'
 import { changePassword } from './changePassword'
 import { checkRequest } from '../../middlewares/checkRequest'
 import { isUserRegistered } from './isUserRegistered'
+import { verifyGoogleMobile } from '../../middlewares/continueWithGoogleMobile'
 const authRouter = express.Router()
 
 authRouter.post('/signup-with-email', signUpWithEmail, respond)
@@ -31,6 +32,12 @@ authRouter.post(
   '/continue-with-google',
 
   verifyGoogle,
+  continueWithGoogle,
+  respond
+)
+authRouter.post(
+  '/continue-with-google-mobile',
+  verifyGoogleMobile,
   continueWithGoogle,
   respond
 )
