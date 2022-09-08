@@ -524,8 +524,6 @@ export const filter = async (
 
     const materials = await Material.find(finder)
       .sort({ postDate: 'desc' })
-      .skip((skip - 1) * limit)
-      .limit(limit)
       .select('-__v')
       .populate([
         {
